@@ -1,43 +1,90 @@
-<!doctype html>
-<html>
+
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Fsharp.enterprise by colinbull</title>
+    <title>F# Data: Library for Data Access</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The F# Data library implements type providers for working with structured file formats (CSV, JSON and XML) and for accessing the WorldBank data. It also includes helpers for other data-related tasks.">
+    <meta name="author" content="Tomas Petricek">
 
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <script src="http://code.jquery.com/jquery-1.8.0.js"></script>
+    <script src="http://code.jquery.com/ui/1.8.23/jquery-ui.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
+
+    <link type="text/css" rel="stylesheet" href="docs/content/style.css" />
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
   </head>
   <body>
-    <div class="wrapper">
-      <header>
-        <h1>Fsharp.enterprise</h1>
-        <p>A collection of helpers for enterprise development with F#</p>
 
-        <p class="view"><a href="https://github.com/colinbull/FSharp.Enterprise">View the Project on GitHub <small>colinbull/FSharp.Enterprise</small></a></p>
-
-
-        <ul>
-          <li><a href="https://github.com/colinbull/FSharp.Enterprise/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/colinbull/FSharp.Enterprise/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/colinbull/FSharp.Enterprise">View On <strong>GitHub</strong></a></li>
+    <div class="container">
+      <div class="masthead">
+        <ul class="nav nav-pills pull-right">
+          <li><a href="http://fsharp.org">fsharp.org</a></li>
+		  <li><a href="http://github.com/colinbull/FSharp.Enterprise">on github</a></li>
+          <li><a href="http://github.com/tpetricek/FSharp.Data">fsharp data library</a></li>
+          <li><a href="http://fsharp.github.com/fsharpx/">fsharpx library</a></li>
         </ul>
-      </header>
-      <section>
-        <h1>FSharp.Enterprise</h1>
+        <h3 class="muted">F# Enterprise Library Collection</h3>
+      </div>
+      <hr>
 
-<p>A collection of helpers for enterprise development with F#</p>
-      </section>
-      <footer>
-        <p>This project is maintained by <a href="https://github.com/colinbull">colinbull</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
-      </footer>
+      <div class="row">
+        <div class="span9" id="main"> 
+          <h1>F# Enterprise: Library for Enterprise Development</h1>
+
+          <p>The F# Enterprise library (<code>FSharp.Enterprise.dll</code>)
+			 
+		  </p>
+
+          <div class="row">
+            <div class="span1"></div>
+            <div class="span6">
+              <div class="well well-small" id="nuget">
+                The F# Enterprise Library is available as <a href="https://nuget.org/packages/FSharp.Enterprise">FSharp.Enterprise on NuGet</a>.
+                To install the library, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">Package Manager Console</a>:
+                <pre>PM> Install-Package FSharp.Enterprise</pre>
+              </div>
+            </div>
+            <div class="span1"></div>
+          </div>
+
+          <p>Alternatively, you can download the <a href="https://github.com/colinbull/FSharp.Enterprise/zipball/master">source as a ZIP file.</a>
+          </p>
+		  
+          <h2>Library license</h2>
+
+          <p>The library is available under Apache 2.0. For more information see the 
+          <a href="https://github.com/colinbull/FSharp.Enterprise/blob/master/License.md">License file</a> in the 
+          GitHub repository.</p>
+        </div>
+
+        <div class="span3">
+
+          <ul class="nav nav-list" id="menu">
+            <li class="nav-header">F# Enterprise Library</li>
+            <li><a href="index.html">Home page</a></li>
+            <li class="divider"></li>
+            <li><a href="https://nuget.org/packages/FSharp.Enterprise">Get Library via NuGet</a></li>
+            <li><a href="https://github.com/colinbull/FSharp.Enterprise">Source Code on GitHub</a></li>
+            <li><a href="https://github.com/colinbull/FSharp.Enterprise/blob/master/LICENSE.md">License (Apache 2.0)</a></li>
+            
+            <li class="nav-header">Documentation</li>
+            <li><a href="docs/Index.html">F# Enterprise Library</a></li>
+            <li class="divider"></li>
+            <li><a href="docs/FSharpEnterprise.html">F# Enterprise: Core</a></li>
+            <li><a href="docs/RabbitMq.html">F# Enterprise: RabbitMq</a></li>
+          </ul>
+
+        </div>
+      </div>
+      </div>
     </div>
-    <script src="javascripts/scale.fix.js"></script>
-    
+
+    <a href="https://github.com/tpetricek/FSharp.Data"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
   </body>
-</html>
+  </html>
