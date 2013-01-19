@@ -90,6 +90,7 @@ AppPackages/
 
 # Others
 build
+docs
 [Bb]in
 [Oo]bj
 sql
