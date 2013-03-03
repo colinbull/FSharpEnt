@@ -1,0 +1,6 @@
+﻿(**
+# F# Enterprise - String
+
+###TODO
+
+*)

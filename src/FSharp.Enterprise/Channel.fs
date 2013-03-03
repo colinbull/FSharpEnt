@@ -1,5 +1,7 @@
 ﻿namespace FSharp.Enterprise
 
+open Serialisation
+
 module Channel =
 
     type Reply<'a> =
@@ -23,11 +25,16 @@ module Channel =
         abstract PostAndReply<'b> :  (IReplyChannel<'b> -> 'a) -> 'b
         abstract PostAndTryAsyncReply<'b> : (IReplyChannel<'b> -> 'a) -> Async<'b option>
 
+    type IPushChannel<'a> =
+       inherit IChannel<'a>
+       abstract Receive : unit -> IEvent<'a>
+
     type IChannelResolver = 
-        abstract TryResolve : string -> IChannel<'msg> option
-        abstract Resolve : string -> IChannel<'msg>
-        abstract Resolve : unit -> seq<IChannel<'msg>>
-        abstract Register : IChannel<'msg> -> unit
+        abstract TryResolve<'msg> : string -> IChannel<'msg> option
+        abstract Resolve<'msg> : string -> IChannel<'msg>
+        abstract ResolveAll<'msg> : unit -> seq<IChannel<'msg>>
+        abstract Register<'msg> : IChannel<'msg> -> unit
+        
 
     type DefaultChannelResolver(?channels) =
        
@@ -42,7 +49,7 @@ module Channel =
             member x.Register(channel) = 
                 channels := (!channels).Add(channel.Name, channel)
 
-            member x.Resolve<'msg>() =
+            member x.ResolveAll<'msg>() =
                 System.Linq.Enumerable.OfType<IChannel<'msg>>(!channels |> Map.toSeq |> Seq.map snd)
 
             member x.TryResolve<'msg>(id) = 
@@ -80,4 +87,4 @@ module Channel =
         let inline (?<-->) (id : string) f = (lookupChannel<'msg> id) <--> f
         let inline (?<-!>) (id : string) f = (lookupChannel<'msg> id) <-!> f
         let inline (?<-?>) (id : string) f = (lookupChannel<'msg> id) <-?> f                   
-        let inline (?<**) (msg : 'msg) = getChannelResolver().Resolve() <-* msg        
+        let inline (?<**) (msg : 'msg) = getChannelResolver().ResolveAll() <-* msg 

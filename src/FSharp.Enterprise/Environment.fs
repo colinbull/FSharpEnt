@@ -1,11 +1,11 @@
 ﻿namespace FSharp.Enterprise
 
-open System
-open System.Reflection
-open System.Configuration
-
-module Environment = 
+module Environment =
     
+    open System
+    open System.Reflection
+    open System.Configuration
+
     let connectionStrings =
         lazy 
         [for cs in ConfigurationManager.ConnectionStrings do
@@ -17,10 +17,10 @@ module Environment =
             yield (cs, ConfigurationManager.AppSettings.Get(cs))] |> Map.ofList
     
     let tryFindAppSetting (name : string) = 
-        appSettings.Value |> Map.tryPick (fun k a -> if k.ToLower() = name.ToLower() then Some(a) else None) 
+        appSettings.Value |> Map.tryFind name 
     
     let tryFindConnectionString (name : string) = 
-        connectionStrings.Value |> Map.tryPick (fun k a -> if k.ToLower() = name.ToLower() then Some(a) else None) 
+        connectionStrings.Value |> Map.tryFind name
 
     let getAppsettingOrDefault (defaultValue : string) (name : string) =
         match tryFindAppSetting name with

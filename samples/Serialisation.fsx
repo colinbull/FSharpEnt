@@ -1,7 +1,0 @@
-﻿(**
-# F# Enterprise - Serialisation
-
-###TODO
-
-*)
-

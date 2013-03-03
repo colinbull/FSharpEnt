@@ -3,7 +3,6 @@
 module Cron = 
     
     open System
-    open FSharp.Enterprise
 
     type CronFieldType = 
         | Value of string
@@ -121,6 +120,16 @@ module Cron =
 
     let toSeq (cron : string) = 
         toSeqAsOf DateTime.Now cron
+
+    let toAsync cron job = 
+        async { 
+                let enum = (toSeq cron).GetEnumerator()
+                while enum.MoveNext() do 
+                    let diff = enum.Current.Subtract(DateTime.Now)
+                    if diff.TotalMilliseconds >= 0. then
+                        do! Async.Sleep(diff.TotalMilliseconds |> int)
+                        do! job
+       }
     
     let toObservable (cron : string) =
       let observers = ref []
