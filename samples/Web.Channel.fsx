@@ -1,8 +1,4 @@
-﻿#r @"..\bin\FSharp.Enterprise.dll"
-#r @"..\bin\FSharp.Enterprise.Web.dll"
-#r @"..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll"
-#r @"System.Net.Http.dll" 
-#r @"System.Net.Http.Formatting.dll"
+﻿
 
 (**
 # F# Enterprise Web - Channels
@@ -12,6 +8,11 @@ the `HttpChannel<'a>` wraps the `System.Net.Http.WebClient`
 
 *)
 
+#r @"..\bin\FSharp.Enterprise.dll"
+#r @"..\bin\FSharp.Enterprise.Web.dll"
+#r @"..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll"
+#r @"System.Net.Http.dll" 
+#r @"System.Net.Http.Formatting.dll"
 open FSharp.Enterprise
 open FSharp.Enterprise.Channel
 open System.Net.Http.Formatting
