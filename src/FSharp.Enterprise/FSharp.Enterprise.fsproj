@@ -41,13 +41,14 @@
     <Compile Include="DateTime.fs" />
     <Compile Include="Environment.fs" />
     <Compile Include="Net.fs" />
+    <Compile Include="Net.Extensions.fs" />
     <Compile Include="Regex.fs" />
     <Compile Include="String.fs" />
     <Compile Include="Uri.fs" />
     <Compile Include="Json.fs" />
     <Compile Include="Xml.fs" />
-    <Compile Include="Async.fs" />
     <Compile Include="Scheduling.fs" />
+    <Compile Include="Async.fs" />
     <Compile Include="Serialisation.fs" />
     <Compile Include="Security.fs" />
     <Compile Include="FileSystem.fs" />

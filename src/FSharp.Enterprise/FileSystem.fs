@@ -39,7 +39,7 @@ module FileSystem =
             then
                 use fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
                 use sr = new StreamReader(fs)
-                Json.toObject<'a> (sr.ReadToEnd()) |> Some
+                serialiser.Deserialise<'a> (sr.ReadToEnd()) |> Some
             else None
 
     let readAllFiltered<'a> predicate path (serialiser : ISerialiser<string>) =
