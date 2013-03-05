@@ -40,11 +40,24 @@ module Serialisation =
         let ofByteArray<'a> (bytes : byte[]) =
             JsonConvert.DeserializeObject<'a>(Encoding.Default.GetString(bytes), settings)
     
-        let ofObject payload = 
+        let toString payload = 
             JsonConvert.SerializeObject(payload,Formatting.None, settings)
     
-        let toObject<'a> js = 
+        let ofString<'a> js = 
             JsonConvert.DeserializeObject<'a>(js, settings)
+
+        let toStream payload (stream : Stream) = 
+            let ser = JsonSerializer.Create(settings)
+            let sw = new StreamWriter(stream)
+            let writer = new JsonTextWriter(sw)      
+            ser.Serialize(writer, payload)
+            stream
+
+        let ofStream<'a> (stream : Stream) = 
+            let ser = JsonSerializer.Create(settings)
+            let sr = new StreamReader(stream)
+            let reader = new JsonTextReader(sr)
+            unbox<'a> (ser.Deserialize(reader, typeof<'a>))
         
         let ByteSerialiser =
             { new ISerialiser<byte[]> with
@@ -58,8 +71,14 @@ module Serialisation =
 
         let StringSerialiser =
             { new ISerialiser<string> with
-                member x.Serialise(payload) = ofObject payload
-                member x.Deserialise(body) = toObject body }
+                member x.Serialise(payload) = toString payload
+                member x.Deserialise(body) = ofString body }
+
+        let StreamSerialiser stream = 
+            { new ISerialiser<Stream> with
+                member x.Serialise(payload) = toStream payload stream
+                member x.Deserialise(body) = ofStream body
+            }
 
 
 
