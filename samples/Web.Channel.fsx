@@ -29,7 +29,7 @@ formatter.SerializerSettings <- Serialisation.Json.settings
 
 *)
 
-let http = new Http.HttpChannel<_>("Example", new System.Net.Http.Formatting.JsonMediaTypeFormatter())
+let http = new Http.HttpChannel<string>("Example", new System.Net.Http.Formatting.JsonMediaTypeFormatter())
 
 
 
