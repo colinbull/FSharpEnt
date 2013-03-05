@@ -15,5 +15,7 @@ module Async =
                 else 
                     return Choice2Of2 e
         }
+
+    let cron cron job = Cron.toAsync cron job
         
     let toTask (async : Async<_>) = System.Threading.Tasks.Task.Factory.StartNew(fun _ -> Async.RunSynchronously(async))
