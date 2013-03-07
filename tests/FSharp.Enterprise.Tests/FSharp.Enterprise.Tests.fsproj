@@ -54,6 +54,8 @@
     <Compile Include="ChannelTests.fs" />
     <Compile Include="DateTimeTests.fs" />
     <Compile Include="CronExpressionTests.fs" />
+    <Compile Include="HtmlTests.fs" />
+    <Compile Include="Html.Dom.Tests.fs" />
     <None Include="Script.fsx" />
     <None Include="packages.config" />
     <None Include="app.config" />

@@ -185,79 +185,81 @@ module Html =
                    yield data sr
             }
 
-    type HAttribute =
-        | HAttribute of (string * string)
-        with
-            member x.Name = 
-                match x with
-                | HAttribute(name,_) -> name
-            member x.Value = 
-                match x with
-                | HAttribute(_,value) -> value
+    module Dom =
 
-    type HElement =
-        | HElement of string * HAttribute list * HElement list
-        | HContent of string
-        with
-            member x.Name 
-                with get() =
+        type HAttribute =
+            | HAttribute of (string * string)
+            with
+                member x.Name = 
                     match x with
-                    | HElement(name, _, _) -> name.ToLower()
-                    | _ -> String.Empty
-            member x.Value 
-                with get() =
-                   let rec getValues = function
-                       | HElement(_, _, content) -> List.collect (getValues) content
-                       | HContent c -> [c.Trim()]
-                   getValues x
-            member x.Children
-                with get() =
+                    | HAttribute(name,_) -> name
+                member x.Value = 
+                    match x with
+                    | HAttribute(_,value) -> value
+
+        type HElement =
+            | HElement of string * HAttribute list * HElement list
+            | HContent of string
+            with
+                member x.Name 
+                    with get() =
                         match x with
-                        | HElement(_, _, children) -> children
-                        | _ -> []
-            member x.TryGetAttribute(name : string) =
-                match x with
-                | HElement(_,attr,_) ->
-                    attr |> List.tryFind (fun a -> a.Name.ToLowerInvariant() = (name.ToLowerInvariant()))
-                | HContent _ -> None
-            member x.HasAttribute(name, value : string) =
-                x.TryGetAttribute(name)
-                |> function 
-                   | Some(attr) ->  attr.Value.ToLowerInvariant() = (value.ToLowerInvariant())
-                   | None -> false
-                    
-    
-    let parse (sr : #StreamReader) =
-        let rec parse' elements tokens =
-            match tokens with
-            | Tag(true, name, attributes) :: rest ->
-               let e = HElement(name, attributes |> List.map HAttribute, [])
-               parse' (e :: elements) rest
-            | Tag(false, name, attributes) :: rest ->
-                let tokens, content = parse' [] rest
-                let e = HElement(name, attributes |> List.map HAttribute, content)
-                parse' (e :: elements) tokens
-            | TagEnd(name) :: rest -> rest, (elements |> List.rev)
-            | Text(cont) :: rest -> parse' (HContent(cont.Trim()) :: elements) rest
-            | [] -> [], (elements |> List.rev)
-        HElement("document", [],
-                 tokenise sr
-                 |> (Seq.toList >> parse' []) 
-                 |> snd)
+                        | HElement(name, _, _) -> name.ToLower()
+                        | _ -> String.Empty
+                member x.Value 
+                    with get() =
+                       let rec getValues = function
+                           | HElement(_, _, content) -> List.collect (getValues) content
+                           | HContent c -> [c.Trim()]
+                       getValues x
+                member x.Children
+                    with get() =
+                            match x with
+                            | HElement(_, _, children) -> children
+                            | _ -> []
+                member x.TryGetAttribute(name : string) =
+                    match x with
+                    | HElement(_,attr,_) ->
+                        attr |> List.tryFind (fun a -> a.Name.ToLowerInvariant() = (name.ToLowerInvariant()))
+                    | HContent _ -> None
+                member x.HasAttribute(name, value : string) =
+                    x.TryGetAttribute(name)
+                    |> function 
+                       | Some(attr) ->  attr.Value.ToLowerInvariant() = (value.ToLowerInvariant())
+                       | None -> false
+                        
+        
+        let parse (sr : #StreamReader) =
+            let rec parse' elements tokens =
+                match tokens with
+                | Tag(true, name, attributes) :: rest ->
+                   let e = HElement(name, attributes |> List.map HAttribute, [])
+                   parse' (e :: elements) rest
+                | Tag(false, name, attributes) :: rest ->
+                    let tokens, content = parse' [] rest
+                    let e = HElement(name, attributes |> List.map HAttribute, content)
+                    parse' (e :: elements) tokens
+                | TagEnd(name) :: rest -> rest, (elements |> List.rev)
+                | Text(cont) :: rest -> parse' (HContent(cont.Trim()) :: elements) rest
+                | [] -> [], (elements |> List.rev)
+            HElement("document", [],
+                     tokenise sr
+                     |> (Seq.toList >> parse' []) 
+                     |> snd)
 
-    let rec descendantsBy f = function 
-        | HElement(name, attrs, elements) ->
-            seq {
-                for element in elements do
-                    if f element then yield element
-                    yield! descendantsBy f element
-            }
-        | HContent _ -> Seq.empty
-    
-    let descendantsByName (name : string) =
-        descendantsBy (fun e -> 
-            e.Name.ToLowerInvariant() = (name.ToLowerInvariant())
-            )
+        let rec descendantsBy f = function 
+            | HElement(name, attrs, elements) ->
+                seq {
+                    for element in elements do
+                        if f element then yield element
+                        yield! descendantsBy f element
+                }
+            | HContent _ -> Seq.empty
+        
+        let descendantsByName (name : string) =
+            descendantsBy (fun e -> 
+                e.Name.ToLowerInvariant() = (name.ToLowerInvariant())
+                )
 
-    let descendants = descendantsBy (fun _ -> true)
+        let descendants = descendantsBy (fun _ -> true)
 
