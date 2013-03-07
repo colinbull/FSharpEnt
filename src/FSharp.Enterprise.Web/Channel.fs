@@ -18,13 +18,14 @@ module Channel =
             | Put of 'a option
             | Delete
 
-        type Request<'a> = string * Verb<'a>
+        type Request<'a> = string * Verb<'a> * MediaTypeFormatter option
 
-        type HttpChannel<'msg>(id, formatter : MediaTypeFormatter) =
-            
+        type HttpChannel<'msg>(id, ?defaultFormatter : MediaTypeFormatter) =
+            let defaultFormatter = defaultArg defaultFormatter (JsonMediaTypeFormatter() :> MediaTypeFormatter)
             let client = new HttpClient()
 
-            let makeRequest (uri, verb) =
+            let makeRequest (uri, verb, formatter) =
+                let formatter = defaultArg formatter defaultFormatter
                 match verb with
                 | Post(payload) ->
                      match payload with
