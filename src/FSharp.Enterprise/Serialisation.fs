@@ -64,10 +64,86 @@ module Serialisation =
                 member x.Serialise(payload) = toByteArray payload
                 member x.Deserialise(body) = ofByteArray body }
 
+        let StringSerialiser =
+            { new ISerialiser<string> with
+                member x.Serialise(payload) = toString payload
+                member x.Deserialise(body) = ofString body }
+
+        let StreamSerialiser stream = 
+            { new ISerialiser<Stream> with
+                member x.Serialise(payload) = toStream payload stream
+                member x.Deserialise(body) = ofStream body
+            }
+
         let JObjectSerialiser =
             { new ISerialiser<JObject> with
                 member x.Serialise(payload) = JObject.FromObject payload
                 member x.Deserialise(body) =  body.ToObject<_>() }
+
+    module Xml = 
+        
+        open System.Reflection
+        open System.Runtime.Serialization
+        open System.Xml
+
+        let private getUnionKnownTypes (t:Type) =
+            t.GetNestedTypes(BindingFlags.Public ||| BindingFlags.NonPublic)
+            |> Array.filter FSharpType.IsUnion
+
+        let private createSerialiser(t:Type) =
+            let knownTypes = 
+                if FSharpType.IsUnion(typeof<'a>)
+                then getUnionKnownTypes t
+                else Array.empty
+
+            new DataContractSerializer(t, knownTypes)
+
+        let toStream (payload:'a) (stream:Stream) =
+            let writer = XmlDictionaryWriter.CreateTextWriter(stream)
+            try
+                let dcs = createSerialiser (typedefof<'a>)
+                dcs.WriteObject(writer, payload)
+                stream
+            finally
+                writer.Close()
+        
+        let ofStream<'a>(stream:Stream) =
+            let reader = XmlReader.Create(stream)
+            try        
+                let dcs = createSerialiser (typedefof<'a>)
+                unbox<'a> (dcs.ReadObject(reader, true))
+            finally
+                reader.Close()
+
+        let toByteArray (payload:'a) =
+            use ms = new MemoryStream()
+            seq {
+                use sr = new StreamReader(toStream payload ms)
+                while not <| sr.EndOfStream do
+                    yield sr.Read() |> byte
+            } |> Seq.toArray
+
+        let ofByteArray (bytes:byte[]) =
+            use ms = new MemoryStream(bytes)
+            ofStream ms
+
+        let toString (payload:'a) =
+            use ms = new MemoryStream()
+            use sr = new StreamReader(toStream payload ms)
+            sr.ReadToEnd()
+
+        let ofString xml = 
+            let reader = XmlReader.Create(new StringReader(xml), new XmlReaderSettings())
+            try        
+                let dcs = createSerialiser (typedefof<'a>)
+                unbox<'a> (dcs.ReadObject(reader, true))
+            finally
+                reader.Close()
+
+        let ByteSerialiser =
+            { new ISerialiser<byte[]> with
+                member x.Serialise(payload) = toByteArray payload
+                member x.Deserialise(body) = ofByteArray body }
 
         let StringSerialiser =
             { new ISerialiser<string> with
@@ -80,5 +156,24 @@ module Serialisation =
                 member x.Deserialise(body) = ofStream body
             }
 
+    module Binary = 
+        
+        open System.Runtime.Serialization
+        open System.Runtime.Serialization.Formatters.Binary
 
+        let toByteArray (payload:'a) =
+            use ms = new MemoryStream()
+            let bin = new BinaryFormatter()
+            bin.Serialize(ms, payload)
+            ms.ToArray()
+
+        let ofByteArray (bytes:byte[]) =
+            use ms = new MemoryStream(bytes)
+            let bin = new BinaryFormatter()
+            unbox<_> (bin.Deserialize(ms))
+
+        let ByteSerialiser =
+            { new ISerialiser<byte[]> with
+                member x.Serialise(payload) = toByteArray payload
+                member x.Deserialise(body) = ofByteArray body }
 
