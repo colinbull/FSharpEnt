@@ -17,7 +17,6 @@ module FileSystem =
              | None -> Path.GetFullPath(file)
         |> fun x -> new FileInfo(x)
     
-
     module IO =
 
         type SearchPattern = string
