@@ -17,6 +17,28 @@ module FileSystem =
              | None -> Path.GetFullPath(file)
         |> fun x -> new FileInfo(x)
     
+    [<AutoOpen>]
+    module Search = 
+        
+        type T = {
+            Recurse : bool
+            Root : string
+            FilePattern : string
+        }
+        
+        let private parse (str:string) = 
+            let filePattern = Path.GetFileName(str)
+            let dir = Path.GetDirectoryName(str)
+            let isRecursive = dir.EndsWith("**")
+            let root = Path.GetFullPath(if isRecursive then dir.Replace("**", "").Trim([|'\\';'/'|]) else dir) 
+            { Recurse = isRecursive; Root = root; FilePattern = filePattern }
+        
+        let findFiles pattern =
+            let searchParams = parse pattern
+            if searchParams.Recurse
+            then Directory.EnumerateFileSystemEntries(searchParams.Root, searchParams.FilePattern, SearchOption.AllDirectories)
+            else Directory.EnumerateFileSystemEntries(searchParams.Root, searchParams.FilePattern)
+
     module IO =
 
         type SearchPattern = string
@@ -27,7 +49,7 @@ module FileSystem =
             abstract member Write : Path * 'a -> unit
             abstract member Read : Path -> 'a option
             abstract member ReadAll : Path * FileFilter -> seq<'a>
-//            abstract member ReadAll : seq<SearchPattern> -> seq<'a>
+            abstract member ReadAll : seq<SearchPattern> -> seq<'a>
             abstract member Delete : Path -> unit
         
         let FileIO (serialiser:ISerialiser<'output>) readOp writeOp =
@@ -41,6 +63,10 @@ module FileSystem =
                                 | Some(a) -> yield a 
                                 | None -> ()
                         }
+                member f.ReadAll(patterns) = 
+                    patterns
+                    |> Seq.collect findFiles
+                    |> Seq.choose f.Read
                 member f.Delete(path) = File.Delete(path)
             }
 
@@ -66,6 +92,10 @@ module FileSystem =
                             | Some(a) -> yield a 
                             | None -> ()
                     }
+                member f.ReadAll(patterns) = 
+                    patterns
+                    |> Seq.collect findFiles
+                    |> Seq.choose f.Read
                 member f.Delete(path) =
                    cache.Remove(path) |> ignore
                    if File.Exists(path) then File.Delete(path) 
