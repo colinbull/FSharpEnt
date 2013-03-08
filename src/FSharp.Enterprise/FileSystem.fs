@@ -5,8 +5,10 @@ module FileSystem =
     open System
     open System.IO
     open System.Runtime.Caching
+    open FSharp.Enterprise
     open Serialisation
     open Caching
+    
 
     let fullPathRelativeTo rootDir file = 
         match Path.IsPathRooted(file) with

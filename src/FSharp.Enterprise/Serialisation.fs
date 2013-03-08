@@ -15,6 +15,7 @@ module Serialisation =
     open Newtonsoft.Json
     open Newtonsoft.Json.Linq
     open Newtonsoft.Json.Converters
+    open FSharp.Enterprise
 
     type ISerialiser<'output> =
         abstract member Serialise : 'a -> 'output
@@ -92,7 +93,7 @@ module Serialisation =
 
         let private createSerialiser(t:Type) =
             let knownTypes = 
-                if FSharpType.IsUnion(typeof<'a>)
+                if FSharpType.IsUnion(t)
                 then getUnionKnownTypes t
                 else Array.empty
 
