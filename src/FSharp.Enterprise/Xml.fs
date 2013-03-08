@@ -20,20 +20,4 @@ module Xml =
          match elem.Attribute(XName.Get(name, "")) with 
          | null -> None
          | attr -> Some(attr.Value)
-    
-    let toStream<'a>(stream:Stream, obj:'a) =
-        let writer = XmlDictionaryWriter.CreateTextWriter(stream)
-        try
-            let dcs = new DataContractSerializer(typeof<'a>)
-            dcs.WriteObject(writer, obj)
-        finally
-            writer.Close()
-    
-    let ofStream<'a>(stream:Stream) =
-        let reader = XmlReader.Create(stream)
-        try        
-            let dcs = new System.Runtime.Serialization.DataContractSerializer(typeof<'a>)
-            dcs.ReadObject(reader, true) :?> 'a
-        finally
-            reader.Close()
 
