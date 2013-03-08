@@ -6,8 +6,9 @@ module FileSystem =
     open System.IO
     open System.Runtime.Caching
     open Serialisation
+    open Caching
 
-    let fullPathFrom rootDir file = 
+    let fullPathRelativeTo rootDir file = 
         match Path.IsPathRooted(file) with
         | true -> file
         | false -> 
@@ -15,57 +16,61 @@ module FileSystem =
              | Some(root) -> Path.Combine(root, file)
              | None -> Path.GetFullPath(file)
         |> fun x -> new FileInfo(x)
+    
 
-    module Cached =
+    module IO =
 
-        let private cache : MemoryCache = MemoryCache.Default;
-        let mutable private  slidingExpiration = TimeSpan.FromSeconds(15.)
-         
-        let private itemRemovedHandler (f  : string -> obj -> unit) = 
-            new CacheEntryRemovedCallback(
-                              fun x -> 
-                                match x.RemovedReason with
-                                | CacheEntryRemovedReason.Expired ->
-                                                f x.CacheItem.Key x.CacheItem.Value
-                                | _ -> ())
-         
-        let private doWrite (serialiser : ISerialiser<string>) (path : string) (payload : 'a) =
-                let payload = serialiser.Serialise(payload)
-                File.WriteAllText(path, payload)
+        type SearchPattern = string
+        type FileFilter = (string -> bool)
+        type Path = string
 
-        let private addToWriteCache (serialiser : ISerialiser<string>) (path : string) (payload : 'a) (cache : MemoryCache) =
-            cache.Set(path, payload, new CacheItemPolicy(SlidingExpiration = slidingExpiration, RemovedCallback = itemRemovedHandler (doWrite serialiser)))
+        type IFileIO =
+            abstract member Write : Path * 'a -> unit
+            abstract member Read : Path -> 'a option
+            abstract member ReadAll : Path * FileFilter -> seq<'a>
+//            abstract member ReadAll : seq<SearchPattern> -> seq<'a>
+            abstract member Delete : Path -> unit
         
-        let setExpiration expiration = 
-            slidingExpiration <- expiration
-
-        let write (serialiser : ISerialiser<string>) path payload =
-            addToWriteCache serialiser path payload cache
-
-        let read<'a> path (serialiser : ISerialiser<string>) =
-            if cache.Contains(path)
-            then unbox<'a> (cache.Get(path)) |> Some
-            else
-                if IO.File.Exists(path)
-                then
-                    use fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                    use sr = new StreamReader(fs)
-                    serialiser.Deserialise<'a> (sr.ReadToEnd()) |> Some
-                else None
-
-        let readAllFiltered<'a> predicate path (serialiser : ISerialiser<string>) =
-            seq {
-                for file in Directory.EnumerateFiles(path) |> Seq.filter predicate do
-                    match read<'a> file serialiser with
-                    | Some(a) -> yield a 
-                    | None -> ()
+        let FileIO (serialiser:ISerialiser<'output>) readOp writeOp =
+            { new IFileIO with
+                member f.Write(path, payload) = serialiser.Serialise(payload) |> writeOp
+                member f.Read(path) = readOp path |> serialiser.Deserialise
+                member f.ReadAll(path, filter) = 
+                        seq {
+                            for file in Directory.EnumerateFiles(path) |> Seq.filter filter do
+                                match f.Read(file) with
+                                | Some(a) -> yield a 
+                                | None -> ()
+                        }
+                member f.Delete(path) = File.Delete(path)
             }
 
-        let readAll<'a> = readAllFiltered<'a> (fun _ -> true)
-
-        let delete path = 
-            if cache.Contains(path) then cache.Remove(path) |> ignore
-            if File.Exists(path) then File.Delete(path)
+        let CachedFileIO (serialiser:ISerialiser<'output>) (expiry:TimeSpan) readOp writeOp =
+            let onRemoved reason path payload =
+                match reason with
+                | CacheEntryRemovedReason.Expired -> serialiser.Serialise(payload) |> writeOp
+                | _ -> ()
+            let cache : ICache<string,_> = Caching.ObjectCache onRemoved MemoryCache.Default
+            { new IFileIO with
+                member f.Write(path, payload) = cache.Set(path, SlidingExpiry(box payload,expiry))
+                member f.Read(path) =
+                    match cache.TryGet(path) with
+                    | Some(v) -> unbox<_> v
+                    | None -> 
+                        if File.Exists(path)
+                        then Some(readOp path |> serialiser.Deserialise)
+                        else None
+                member f.ReadAll(path, filter) = 
+                    seq {
+                        for file in Directory.EnumerateFiles(path) |> Seq.filter filter do
+                            match f.Read(file) with
+                            | Some(a) -> yield a 
+                            | None -> ()
+                    }
+                member f.Delete(path) =
+                   cache.Remove(path) |> ignore
+                   if File.Exists(path) then File.Delete(path) 
+            }
 
 
 

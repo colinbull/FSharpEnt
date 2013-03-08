@@ -2,6 +2,7 @@
 
 module Async =
     open System
+    open System.Threading.Tasks
 
     let rec retry count interval (isRetryException:System.Exception->bool) (work:Async<'T>) = 
         async { 
@@ -18,7 +19,11 @@ module Async =
 
     let cron cron job = Cron.toAsync cron job
         
-    let toTask (async : Async<_>) = System.Threading.Tasks.Task.Factory.StartNew(fun _ -> Async.RunSynchronously(async))
+    let toTask (async : Async<_>) = 
+        Task.Factory.StartNew(fun _ -> Async.RunSynchronously(async))
+
+    let toActionTask (async : Async<_>) = 
+        Task.Factory.StartNew(new Action(fun () -> Async.RunSynchronously(async) |> ignore))
 
 [<AutoOpen>]
 module AsyncTypes = 
