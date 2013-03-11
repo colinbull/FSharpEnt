@@ -57,7 +57,6 @@
     <Compile Include="FileSystem.fs" />
     <Compile Include="Channel.fs" />
     <Compile Include="Agent.fs" />
-    <None Include="GlobbingTests.fsx" />
     <None Include="packages.config" />
     <Compile Include="AssemblyInfo.fs" />
   </ItemGroup>

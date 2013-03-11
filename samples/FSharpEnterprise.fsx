@@ -27,6 +27,7 @@ This provides a core set of modules,
 * [Environment](Core.Environment.html)
 * [FileSystem](Core.FileSystem.html)
 * [Html](Core.Html.html)
+* [IO](Core.IO.html)
 * [Json](Core.Json.html)
 * [Net](Core.Net.html)
 * [Process](Core.Process.html)

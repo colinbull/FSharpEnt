@@ -89,5 +89,3 @@ The results for the above code are as follows...
 
 Of course the actual values will vary depending on the machine.
 *)
-
-    
