@@ -20,6 +20,43 @@ module Serialisation =
     type ISerialiser<'output> =
         abstract member Serialise : 'a -> 'output
         abstract member Deserialise : 'output -> 'a
+    
+    module Raw = 
+
+        let toByteArray (payload : 'a) =
+            payload.ToString() |> Encoding.Default.GetBytes
+    
+        let ofByteArray<'a> (bytes : byte[]) =
+            box(Encoding.Default.GetString(bytes)) :?> 'a
+    
+        let toString payload =  payload.ToString()
+    
+        let ofString<'a> (js:string) = (box js) :?> 'a
+
+        let toStream payload (stream : Stream) = 
+            use sw = new StreamWriter(stream)    
+            sw.WriteLine(payload.ToString())
+            stream
+
+        let ofStream (stream : Stream) = 
+            let sr = new StreamReader(stream)
+            box(sr.ReadToEnd()) :?> 'a
+
+        let ByteSerialiser =
+            { new ISerialiser<byte[]> with
+                member x.Serialise(payload) = toByteArray payload
+                member x.Deserialise(body) = ofByteArray body }
+
+        let StringSerialiser =
+            { new ISerialiser<string> with
+                member x.Serialise(payload) = toString payload
+                member x.Deserialise(body) = ofString body }
+
+        let StreamSerialiser stream = 
+            { new ISerialiser<Stream> with
+                member x.Serialise(payload) = toStream payload stream
+                member x.Deserialise(body) = ofStream body
+            }
 
     module Json = 
         let settings = 

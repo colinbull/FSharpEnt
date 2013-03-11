@@ -53,6 +53,7 @@
     <Compile Include="Scheduling.fs" />
     <Compile Include="Async.fs" />
     <Compile Include="Security.fs" />
+    <Compile Include="IO.fs" />
     <Compile Include="FileSystem.fs" />
     <Compile Include="Channel.fs" />
     <Compile Include="Agent.fs" />

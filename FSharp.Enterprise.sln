@@ -17,6 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{32F6
 		samples\Core.Environment.fsx = samples\Core.Environment.fsx
 		samples\Core.FileSystem.fsx = samples\Core.FileSystem.fsx
 		samples\Core.Html.fsx = samples\Core.Html.fsx
+		samples\Core.IO.fsx = samples\Core.IO.fsx
 		samples\Core.Json.fsx = samples\Core.Json.fsx
 		samples\Core.Net.fsx = samples\Core.Net.fsx
 		samples\Core.Process.fsx = samples\Core.Process.fsx
