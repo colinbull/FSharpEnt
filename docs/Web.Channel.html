@@ -71,7 +71,7 @@ the <code>HttpChannel&lt;'a&gt;</code> wraps the <code>System.Net.Http.WebClient
 <div class="tip" id="fs13">val settings : Newtonsoft.Json.JsonSerializerSettings<br /><br />Full name: FSharp.Enterprise.Serialisation.Json.settings</div>
 <div class="tip" id="fs14">val http : Http.HttpChannel&lt;string&gt;<br /><br />Full name: Web.Channel.http</div>
 <div class="tip" id="fs15">module Http<br /><br />from FSharp.Enterprise.Channel</div>
-<div class="tip" id="fs16">Multiple items<br />type HttpChannel&lt;&#39;msg&gt; =<br />&#160;&#160;interface IChannel&lt;Request&lt;&#39;msg&gt;&gt;<br />&#160;&#160;new : id:string * formatter:MediaTypeFormatter -&gt; HttpChannel&lt;&#39;msg&gt;<br /><br />Full name: FSharp.Enterprise.Channel.Http.HttpChannel&lt;_&gt;<br /><br />--------------------<br />new : id:string * formatter:MediaTypeFormatter -&gt; Http.HttpChannel&lt;&#39;msg&gt;</div>
+<div class="tip" id="fs16">Multiple items<br />type HttpChannel&lt;&#39;msg&gt; =<br />&#160;&#160;interface IChannel&lt;Request&lt;&#39;msg&gt;&gt;<br />&#160;&#160;new : id:string * ?defaultFormatter:MediaTypeFormatter -&gt; HttpChannel&lt;&#39;msg&gt;<br /><br />Full name: FSharp.Enterprise.Channel.Http.HttpChannel&lt;_&gt;<br /><br />--------------------<br />new : id:string * ?defaultFormatter:MediaTypeFormatter -&gt; Http.HttpChannel&lt;&#39;msg&gt;</div>
 <div class="tip" id="fs17">Multiple items<br />val string : value:&#39;T -&gt; string<br /><br />Full name: Microsoft.FSharp.Core.Operators.string<br /><br />--------------------<br />type string = System.String<br /><br />Full name: Microsoft.FSharp.Core.string</div>
 
         </div>
