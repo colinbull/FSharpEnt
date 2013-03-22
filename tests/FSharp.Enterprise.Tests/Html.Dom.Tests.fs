@@ -42,7 +42,7 @@ type ``Given parsed Html``() =
         actual |> should equal expected
 
     [<Test>]
-    member x.``I should be able to get all descendants of a tag``() =
+    member x.``I should be able to get all descendants of a document``() =
         let html = """<html><body><div id="foo">Foo</div></body></html>"""
         let actual = 
             read html
@@ -57,4 +57,16 @@ type ``Given parsed Html``() =
                 HContent("Foo")
             ]
         actual |> should equal expected
+
+    [<Test>]
+    member x.``I can write out xhtml``() =
+        let html = """<html><body><div id="foo">Foo</div></body></html>"""
+        let actual = 
+            let sb = new StringBuilder()
+            use sr = new StringWriter(sb)
+            read html
+            |> parse
+            |> toXHtml sr
+            sb.ToString()
+        actual |> should equal html
 

@@ -4,6 +4,7 @@ module Html =
     
     open System
     open System.IO
+    open System.Xml
 
     let private nullChar = Convert.ToChar(0x0)
 
@@ -198,6 +199,7 @@ module Html =
                     | HAttribute(_,value) -> value
 
         type HElement =
+            | HDocument of HElement list
             | HElement of string * HAttribute list * HElement list
             | HContent of string
             with
@@ -209,6 +211,7 @@ module Html =
                 member x.Value 
                     with get() =
                        let rec getValues = function
+                           | HDocument(content)
                            | HElement(_, _, content) -> List.collect (getValues) content
                            | HContent c -> [c.Trim()]
                        getValues x
@@ -219,6 +222,7 @@ module Html =
                             | _ -> []
                 member x.TryGetAttribute(name : string) =
                     match x with
+                    | HDocument(_) -> None
                     | HElement(_,attr,_) ->
                         attr |> List.tryFind (fun a -> a.Name.ToLowerInvariant() = (name.ToLowerInvariant()))
                     | HContent _ -> None
@@ -242,13 +246,14 @@ module Html =
                 | TagEnd(name) :: rest -> rest, (elements |> List.rev)
                 | Text(cont) :: rest -> parse' (HContent(cont.Trim()) :: elements) rest
                 | [] -> [], (elements |> List.rev)
-            HElement("document", [],
+            HDocument(
                      tokenise sr
                      |> (Seq.toList >> parse' []) 
                      |> snd)
 
-        let rec descendantsBy f = function 
-            | HElement(name, attrs, elements) ->
+        let rec descendantsBy f = function
+            | HDocument(elements)
+            | HElement(_, _, elements) ->
                 seq {
                     for element in elements do
                         if f element then yield element
@@ -262,4 +267,34 @@ module Html =
                 )
 
         let descendants = descendantsBy (fun _ -> true)
+
+        let first f = descendantsBy f >> Seq.head
+
+        let values elems = Seq.map (fun (e:HElement) -> e.Value) elems
+
+        let toXHtml (writer:TextWriter) (element:HElement) =
+            let createXmlWriter(baseWriter:TextWriter) =
+                let s = new System.Xml.XmlWriterSettings(Indent = false,
+                                                         OmitXmlDeclaration = true, 
+                                                         ConformanceLevel = System.Xml.ConformanceLevel.Auto)
+                XmlWriter.Create(baseWriter, s)
+            
+            let rec writeElement (writer:XmlWriter) = function
+                | HDocument(elems) ->
+                    for elem in elems do 
+                        writeElement writer elem
+                | HContent(c) -> writer.WriteValue(c)
+                | HElement(name, attrs, elems) ->
+                    writer.WriteStartElement(name)
+                    for attr in attrs do
+                        match attr with
+                        | HAttribute(key,value) -> writer.WriteAttributeString(key, value)
+                    for elem in elems do 
+                        writeElement writer elem
+                    writer.WriteEndElement()
+
+            use writer = createXmlWriter(writer)
+            writeElement writer element
+                
+                 
 
