@@ -36,9 +36,156 @@
         <div class="span9" id="main">
           <h1>F# Enterprise Web - Html</h1>
 
-<h3>TODO</h3>
+<p>The HTML modules provides a way to tokenise, parse and process HTML documents.</p>
+<pre class="fssnip">
+<span class="l">1: </span><span class="prep">#r</span> <span class="s">@&quot;</span><span class="s">.</span><span class="s">.</span><span class="s">\</span><span class="s">bin</span><span class="s">\</span><span class="s">FSharp</span><span class="s">.</span><span class="s">Enterprise</span><span class="s">.</span><span class="s">dll</span><span class="s">&quot;</span>
+<span class="l">2: </span>
+<span class="l">3: </span><span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="i">System</span>
+<span class="l">4: </span><span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 2)" onmouseover="showTip(event, 'fs1', 2)" class="i">System</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs2', 3)" onmouseover="showTip(event, 'fs2', 3)" class="i">IO</span>
+<span class="l">5: </span><span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 4)" onmouseover="showTip(event, 'fs1', 4)" class="i">System</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs3', 5)" onmouseover="showTip(event, 'fs3', 5)" class="i">Text</span>
+<span class="l">6: </span><span class="k">open</span> <span onmouseout="hideTip(event, 'fs4', 6)" onmouseover="showTip(event, 'fs4', 6)" class="i">FSharp</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs5', 7)" onmouseover="showTip(event, 'fs5', 7)" class="i">Enterprise</span></pre>
+<h2>Tokenisation</h2>
 
-          
+<p>Tokenisation is</p>
+
+<blockquote>
+  <p>The process of breaking a stream of text up into words, phrases, symbols, or other meaningful elements called tokens. The list of tokens becomes input for further processing such as parsing or text mining. Tokenization is useful both in linguistics (where it is a form of text segmentation), and in computer science, where it forms part of lexical analysis.</p>
+</blockquote>
+
+<p>according to <a href="http://en.wikipedia.org/wiki/Tokenization">Wikipedia</a>. The following example shows the results of processing a simple HTML string.</p>
+<pre class="fssnip">
+<span class="l">1: </span><span class="k">let</span> <span onmouseout="hideTip(event, 'fs6', 8)" onmouseover="showTip(event, 'fs6', 8)" class="i">str</span> <span class="o">=</span>
+<span class="l">2: </span>     <span class="s">&quot;&quot;&quot;</span><span class="s">&lt;</span><span class="s">html</span><span class="s">&gt;</span><span class="s">&lt;</span><span class="s">body</span><span class="s">&gt;</span><span class="s">&lt;</span><span class="s">p</span><span class="s"> </span><span class="s">align</span><span class="s">=</span><span class="s">&quot;</span><span class="s">right</span><span class="s">&quot;</span><span class="s">&gt;</span><span class="s">Begin</span><span class="s"> </span><span class="s">&amp;</span><span class="s">amp</span><span class="s">;</span><span class="s"> </span><span class="s">start</span><span class="s">&lt;</span><span class="s">/</span><span class="s">p</span><span class="s">&gt;</span><span class="s">&lt;</span><span class="s">p</span><span class="s"> </span><span class="s">align</span><span class="s">=</span><span class="s">&quot;</span><span class="s">right</span><span class="s">&quot;</span><span class="s">&gt;</span><span class="s">Begin</span><span class="s"> </span><span class="s">&amp;</span><span class="s">amp</span><span class="s">;</span><span class="s"> </span><span class="s">end</span><span class="s">&lt;</span><span class="s">/</span><span class="s">p</span><span class="s">&gt;</span><span class="s">&lt;</span><span class="s">/</span><span class="s">body</span><span class="s">&gt;</span><span class="s">&lt;</span><span class="s">/</span><span class="s">html</span><span class="s">&gt;</span><span class="s">&quot;&quot;&quot;</span>
+<span class="l">3: </span>
+<span class="l">4: </span><span class="k">let</span> <span onmouseout="hideTip(event, 'fs7', 9)" onmouseover="showTip(event, 'fs7', 9)" class="i">tokenisedResult</span> <span class="o">=</span> 
+<span class="l">5: </span>    <span class="k">use</span> <span onmouseout="hideTip(event, 'fs8', 10)" onmouseover="showTip(event, 'fs8', 10)" class="i">ms</span> <span class="o">=</span> <span class="k">new</span> <span onmouseout="hideTip(event, 'fs9', 11)" onmouseover="showTip(event, 'fs9', 11)" class="i">MemoryStream</span>(<span onmouseout="hideTip(event, 'fs10', 12)" onmouseover="showTip(event, 'fs10', 12)" class="i">Encoding</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs11', 13)" onmouseover="showTip(event, 'fs11', 13)" class="i">UTF8</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs12', 14)" onmouseover="showTip(event, 'fs12', 14)" class="i">GetBytes</span>(<span onmouseout="hideTip(event, 'fs6', 15)" onmouseover="showTip(event, 'fs6', 15)" class="i">str</span>))
+<span class="l">6: </span>    <span class="k">use</span> <span onmouseout="hideTip(event, 'fs13', 16)" onmouseover="showTip(event, 'fs13', 16)" class="i">sr</span> <span class="o">=</span> <span class="k">new</span> <span onmouseout="hideTip(event, 'fs14', 17)" onmouseover="showTip(event, 'fs14', 17)" class="i">StreamReader</span>(<span onmouseout="hideTip(event, 'fs8', 18)" onmouseover="showTip(event, 'fs8', 18)" class="i">ms</span>)
+<span class="l">7: </span>    <span onmouseout="hideTip(event, 'fs15', 19)" onmouseover="showTip(event, 'fs15', 19)" class="i">Html</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs16', 20)" onmouseover="showTip(event, 'fs16', 20)" class="i">tokenise</span> <span onmouseout="hideTip(event, 'fs13', 21)" onmouseover="showTip(event, 'fs13', 21)" class="i">sr</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs17', 22)" onmouseover="showTip(event, 'fs17', 22)" class="i">Seq</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs18', 23)" onmouseover="showTip(event, 'fs18', 23)" class="i">toList</span></pre>
+<p>The result of the above code gives</p>
+
+<pre><code>val tokenisedResult : Html.HtmlToken list =
+  [Tag (false,"html",[]); Tag (false,"body",[]);
+   Tag (false,"p",[("align", "right")]); Text "Begin &amp;amp; start"; TagEnd "p";
+   Tag (false,"p",[("align", "right")]); Text "Begin &amp;amp; end"; TagEnd "p";
+   TagEnd "body"; TagEnd "html"]
+</code></pre>
+
+<h2>Parsing</h2>
+
+<p>Parsing is</p>
+
+<blockquote>
+  <p>The process of analysing a string of symbols, either in natural language or in computer languages, according to the rules of a formal grammar.</p>
+</blockquote>
+
+<p>again according to wikipedia. Parsing takes the sequence of tokens from the tokenising phase and builds a DOM which represents the underlying document.
+Parsing in the <code>Html</code> module is handled by <code>Html.Dom.parse</code> function. This wraps the above tokenisation function. Running the same example as above</p>
+<pre class="fssnip">
+<span class="l">1: </span><span class="k">let</span> <span onmouseout="hideTip(event, 'fs19', 24)" onmouseover="showTip(event, 'fs19', 24)" class="i">parsedResult</span> <span class="o">=</span> 
+<span class="l">2: </span>    <span class="k">use</span> <span onmouseout="hideTip(event, 'fs8', 25)" onmouseover="showTip(event, 'fs8', 25)" class="i">ms</span> <span class="o">=</span> <span class="k">new</span> <span onmouseout="hideTip(event, 'fs9', 26)" onmouseover="showTip(event, 'fs9', 26)" class="i">MemoryStream</span>(<span onmouseout="hideTip(event, 'fs10', 27)" onmouseover="showTip(event, 'fs10', 27)" class="i">Encoding</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs11', 28)" onmouseover="showTip(event, 'fs11', 28)" class="i">UTF8</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs12', 29)" onmouseover="showTip(event, 'fs12', 29)" class="i">GetBytes</span>(<span onmouseout="hideTip(event, 'fs6', 30)" onmouseover="showTip(event, 'fs6', 30)" class="i">str</span>))
+<span class="l">3: </span>    <span class="k">use</span> <span onmouseout="hideTip(event, 'fs13', 31)" onmouseover="showTip(event, 'fs13', 31)" class="i">sr</span> <span class="o">=</span> <span class="k">new</span> <span onmouseout="hideTip(event, 'fs14', 32)" onmouseover="showTip(event, 'fs14', 32)" class="i">StreamReader</span>(<span onmouseout="hideTip(event, 'fs8', 33)" onmouseover="showTip(event, 'fs8', 33)" class="i">ms</span>)
+<span class="l">4: </span>    <span onmouseout="hideTip(event, 'fs15', 34)" onmouseover="showTip(event, 'fs15', 34)" class="i">Html</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs20', 35)" onmouseover="showTip(event, 'fs20', 35)" class="i">Dom</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs21', 36)" onmouseover="showTip(event, 'fs21', 36)" class="i">parse</span> <span onmouseout="hideTip(event, 'fs13', 37)" onmouseover="showTip(event, 'fs13', 37)" class="i">sr</span></pre>
+<pre><code>val parsedResult : Html.Dom.HElement =
+  HDocument
+    [HElement
+       ("html",[],
+        [HElement
+           ("body",[],
+            [HElement
+               ("p",[HAttribute ("align", "right")],
+                [HContent "Begin &amp;amp; start"]);
+             HElement
+               ("p",[HAttribute ("align", "right")],
+                [HContent "Begin &amp;amp; end"])])])]
+</code></pre>
+
+<p>It is clear that this gives us something we can begin to manipulate and query.</p>
+
+<h2>Querying the dom</h2>
+
+<p>Once we have our parsed tree, we might want to being to query it to extract information or indeed convert it into some completely other form. Since the dom tree is a 
+recursive structure, standard F# modules like 'List' and 'Seq' will get us a long in processing this tree. But never the less some helper functions are still provided</p>
+<pre class="fssnip">
+<span class="l">1: </span><span class="k">let</span> <span onmouseout="hideTip(event, 'fs22', 38)" onmouseover="showTip(event, 'fs22', 38)" class="i">allPElements</span> <span class="o">=</span>  <span onmouseout="hideTip(event, 'fs15', 39)" onmouseover="showTip(event, 'fs15', 39)" class="i">Html</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs20', 40)" onmouseover="showTip(event, 'fs20', 40)" class="i">Dom</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs23', 41)" onmouseover="showTip(event, 'fs23', 41)" class="i">descendantsBy</span> (<span class="k">fun</span> <span onmouseout="hideTip(event, 'fs24', 42)" onmouseover="showTip(event, 'fs24', 42)" class="i">elem</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs24', 43)" onmouseover="showTip(event, 'fs24', 43)" class="i">elem</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 44)" onmouseover="showTip(event, 'fs25', 44)" class="i">Name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="s">p</span><span class="s">&quot;</span>) <span onmouseout="hideTip(event, 'fs19', 45)" onmouseover="showTip(event, 'fs19', 45)" class="i">parsedResult</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs17', 46)" onmouseover="showTip(event, 'fs17', 46)" class="i">Seq</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs26', 47)" onmouseover="showTip(event, 'fs26', 47)" class="i">toArray</span></pre>
+<pre><code>val allPElements : Html.Dom.HElement [] =
+  [|HElement
+      ("p",[HAttribute ("align", "right")],[HContent "Begin &amp;amp; start"]);
+    HElement
+      ("p",[HAttribute ("align", "right")],[HContent "Begin &amp;amp; end"])|]
+</code></pre>
+
+<p>This walks the tree selecting all elements which statisfies the given predicate.</p>
+<pre class="fssnip">
+<span class="l">1: </span><span class="k">let</span> <span onmouseout="hideTip(event, 'fs27', 48)" onmouseover="showTip(event, 'fs27', 48)" class="i">firstPElement</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs15', 49)" onmouseover="showTip(event, 'fs15', 49)" class="i">Html</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs20', 50)" onmouseover="showTip(event, 'fs20', 50)" class="i">Dom</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs28', 51)" onmouseover="showTip(event, 'fs28', 51)" class="i">first</span> (<span class="k">fun</span> <span onmouseout="hideTip(event, 'fs24', 52)" onmouseover="showTip(event, 'fs24', 52)" class="i">elem</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs24', 53)" onmouseover="showTip(event, 'fs24', 53)" class="i">elem</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 54)" onmouseover="showTip(event, 'fs25', 54)" class="i">Name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="s">p</span><span class="s">&quot;</span>) <span onmouseout="hideTip(event, 'fs19', 55)" onmouseover="showTip(event, 'fs19', 55)" class="i">parsedResult</span></pre>
+<pre><code>val firstPElement : Html.Dom.HElement =
+  HElement
+    ("p",[HAttribute ("align", "right")],[HContent "Begin &amp;amp; start"])
+</code></pre>
+
+<p>This walks the tree and selects the first element that matches the predicate. If no such elements are found a <code>KeyNotFoundException</code> will be thrown.</p>
+<pre class="fssnip">
+<span class="l">1: </span><span class="k">let</span> <span onmouseout="hideTip(event, 'fs29', 56)" onmouseover="showTip(event, 'fs29', 56)" class="i">allContent</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs22', 57)" onmouseover="showTip(event, 'fs22', 57)" class="i">allPElements</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs15', 58)" onmouseover="showTip(event, 'fs15', 58)" class="i">Html</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs20', 59)" onmouseover="showTip(event, 'fs20', 59)" class="i">Dom</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs30', 60)" onmouseover="showTip(event, 'fs30', 60)" class="i">values</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs17', 61)" onmouseover="showTip(event, 'fs17', 61)" class="i">Seq</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs26', 62)" onmouseover="showTip(event, 'fs26', 62)" class="i">toArray</span></pre>
+<pre><code>val allContent : string list [] =
+  [|["Begin &amp;amp; start"]; ["Begin &amp;amp; end"]|]
+</code></pre>
+
+<p>This walks the tree extracting the values from all of the <code>HContent</code> elements found within the tree.</p>
+
+<h2>Writing out XHTML</h2>
+
+<p>Once we have a dom, we may wish to write it out. This can be achieved using the <code>toXHtml</code> function.</p>
+<pre class="fssnip">
+<span class="l">1: </span><span class="k">let</span> <span onmouseout="hideTip(event, 'fs31', 63)" onmouseover="showTip(event, 'fs31', 63)" class="i">html</span> <span class="o">=</span> 
+<span class="l">2: </span>    <span class="k">let</span> <span onmouseout="hideTip(event, 'fs32', 64)" onmouseover="showTip(event, 'fs32', 64)" class="i">sb</span> <span class="o">=</span> <span class="k">new</span> <span onmouseout="hideTip(event, 'fs33', 65)" onmouseover="showTip(event, 'fs33', 65)" class="i">StringBuilder</span>()
+<span class="l">3: </span>    <span class="k">use</span> <span onmouseout="hideTip(event, 'fs34', 66)" onmouseover="showTip(event, 'fs34', 66)" class="i">sr</span> <span class="o">=</span> <span class="k">new</span> <span onmouseout="hideTip(event, 'fs35', 67)" onmouseover="showTip(event, 'fs35', 67)" class="i">StringWriter</span>(<span onmouseout="hideTip(event, 'fs32', 68)" onmouseover="showTip(event, 'fs32', 68)" class="i">sb</span>)
+<span class="l">4: </span>    <span onmouseout="hideTip(event, 'fs15', 69)" onmouseover="showTip(event, 'fs15', 69)" class="i">Html</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs20', 70)" onmouseover="showTip(event, 'fs20', 70)" class="i">Dom</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs36', 71)" onmouseover="showTip(event, 'fs36', 71)" class="i">toXHtml</span> <span onmouseout="hideTip(event, 'fs34', 72)" onmouseover="showTip(event, 'fs34', 72)" class="i">sr</span> <span onmouseout="hideTip(event, 'fs19', 73)" onmouseover="showTip(event, 'fs19', 73)" class="i">parsedResult</span>
+<span class="l">5: </span>    <span onmouseout="hideTip(event, 'fs32', 74)" onmouseover="showTip(event, 'fs32', 74)" class="i">sb</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs37', 75)" onmouseover="showTip(event, 'fs37', 75)" class="i">ToString</span>()</pre>
+<pre><code>&lt;html&gt;
+  &lt;body&gt;
+    &lt;p align="right"&gt;Begin &amp;amp;amp; start&lt;/p&gt;
+    &lt;p align="right"&gt;Begin &amp;amp;amp; end&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+          <div class="tip" id="fs1">namespace System</div>
+<div class="tip" id="fs2">namespace System.IO</div>
+<div class="tip" id="fs3">namespace System.Text</div>
+<div class="tip" id="fs4">namespace FSharp</div>
+<div class="tip" id="fs5">namespace FSharp.Enterprise</div>
+<div class="tip" id="fs6">val str : string<br /><br />Full name: Core.Html.str</div>
+<div class="tip" id="fs7">val tokenisedResult : Html.HtmlToken list<br /><br />Full name: Core.Html.tokenisedResult</div>
+<div class="tip" id="fs8">val ms : MemoryStream</div>
+<div class="tip" id="fs9">Multiple items<br />type MemoryStream =<br />&#160;&#160;inherit Stream<br />&#160;&#160;new : unit -&gt; MemoryStream + 6 overloads<br />&#160;&#160;member CanRead : bool<br />&#160;&#160;member CanSeek : bool<br />&#160;&#160;member CanWrite : bool<br />&#160;&#160;member Capacity : int with get, set<br />&#160;&#160;member CopyToAsync : destination:Stream * bufferSize:int * cancellationToken:CancellationToken -&gt; Task<br />&#160;&#160;member Flush : unit -&gt; unit<br />&#160;&#160;member FlushAsync : cancellationToken:CancellationToken -&gt; Task<br />&#160;&#160;member GetBuffer : unit -&gt; byte[]<br />&#160;&#160;member Length : int64<br />&#160;&#160;...<br /><br />Full name: System.IO.MemoryStream<br /><br />--------------------<br />MemoryStream() : unit<br />MemoryStream(capacity: int) : unit<br />MemoryStream(buffer: byte []) : unit<br />MemoryStream(buffer: byte [], writable: bool) : unit<br />MemoryStream(buffer: byte [], index: int, count: int) : unit<br />MemoryStream(buffer: byte [], index: int, count: int, writable: bool) : unit<br />MemoryStream(buffer: byte [], index: int, count: int, writable: bool, publiclyVisible: bool) : unit</div>
+<div class="tip" id="fs10">type Encoding =<br />&#160;&#160;member BodyName : string<br />&#160;&#160;member Clone : unit -&gt; obj<br />&#160;&#160;member CodePage : int<br />&#160;&#160;member DecoderFallback : DecoderFallback with get, set<br />&#160;&#160;member EncoderFallback : EncoderFallback with get, set<br />&#160;&#160;member EncodingName : string<br />&#160;&#160;member Equals : value:obj -&gt; bool<br />&#160;&#160;member GetByteCount : chars:char[] -&gt; int + 3 overloads<br />&#160;&#160;member GetBytes : chars:char[] -&gt; byte[] + 5 overloads<br />&#160;&#160;member GetCharCount : bytes:byte[] -&gt; int + 2 overloads<br />&#160;&#160;...<br /><br />Full name: System.Text.Encoding</div>
+<div class="tip" id="fs11">property Encoding.UTF8: Encoding</div>
+<div class="tip" id="fs12">Encoding.GetBytes(s: string) : byte []<br />Encoding.GetBytes(chars: char []) : byte []<br />Encoding.GetBytes(chars: char [], index: int, count: int) : byte []<br />Encoding.GetBytes(chars: nativeptr&lt;char&gt;, charCount: int, bytes: nativeptr&lt;byte&gt;, byteCount: int) : int<br />Encoding.GetBytes(s: string, charIndex: int, charCount: int, bytes: byte [], byteIndex: int) : int<br />Encoding.GetBytes(chars: char [], charIndex: int, charCount: int, bytes: byte [], byteIndex: int) : int</div>
+<div class="tip" id="fs13">val sr : StreamReader</div>
+<div class="tip" id="fs14">Multiple items<br />type StreamReader =<br />&#160;&#160;inherit TextReader<br />&#160;&#160;new : stream:Stream -&gt; StreamReader + 10 overloads<br />&#160;&#160;member BaseStream : Stream<br />&#160;&#160;member Close : unit -&gt; unit<br />&#160;&#160;member CurrentEncoding : Encoding<br />&#160;&#160;member DiscardBufferedData : unit -&gt; unit<br />&#160;&#160;member EndOfStream : bool<br />&#160;&#160;member Peek : unit -&gt; int<br />&#160;&#160;member Read : unit -&gt; int + 1 overload<br />&#160;&#160;member ReadAsync : buffer:char[] * index:int * count:int -&gt; Task&lt;int&gt;<br />&#160;&#160;member ReadBlock : buffer:char[] * index:int * count:int -&gt; int<br />&#160;&#160;...<br /><br />Full name: System.IO.StreamReader<br /><br />--------------------<br />StreamReader(stream: Stream) : unit<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />StreamReader(path: string) : unit<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />StreamReader(stream: Stream, detectEncodingFromByteOrderMarks: bool) : unit<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />StreamReader(stream: Stream, encoding: Encoding) : unit<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />StreamReader(path: string, detectEncodingFromByteOrderMarks: bool) : unit<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />StreamReader(path: string, encoding: Encoding) : unit<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />StreamReader(stream: Stream, encoding: Encoding, detectEncodingFromByteOrderMarks: bool) : unit<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />StreamReader(path: string, encoding: Encoding, detectEncodingFromByteOrderMarks: bool) : unit<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />StreamReader(stream: Stream, encoding: Encoding, detectEncodingFromByteOrderMarks: bool, bufferSize: int) : unit<br />&#160;&#160;&#160;<em>(+0 other overloads)</em><br />StreamReader(path: string, encoding: Encoding, detectEncodingFromByteOrderMarks: bool, bufferSize: int) : unit<br />&#160;&#160;&#160;<em>(+0 other overloads)</em></div>
+<div class="tip" id="fs15">module Html<br /><br />from FSharp.Enterprise</div>
+<div class="tip" id="fs16">val tokenise : sr:#StreamReader -&gt; seq&lt;Html.HtmlToken&gt;<br /><br />Full name: FSharp.Enterprise.Html.tokenise</div>
+<div class="tip" id="fs17">module Seq<br /><br />from Microsoft.FSharp.Collections</div>
+<div class="tip" id="fs18">val toList : source:seq&lt;&#39;T&gt; -&gt; &#39;T list<br /><br />Full name: Microsoft.FSharp.Collections.Seq.toList</div>
+<div class="tip" id="fs19">val parsedResult : Html.Dom.HElement<br /><br />Full name: Core.Html.parsedResult</div>
+<div class="tip" id="fs20">module Dom<br /><br />from FSharp.Enterprise.Html</div>
+<div class="tip" id="fs21">val parse : sr:#StreamReader -&gt; Html.Dom.HElement<br /><br />Full name: FSharp.Enterprise.Html.Dom.parse</div>
+<div class="tip" id="fs22">val allPElements : Html.Dom.HElement []<br /><br />Full name: Core.Html.allPElements</div>
+<div class="tip" id="fs23">val descendantsBy : f:(Html.Dom.HElement -&gt; bool) -&gt; _arg1:Html.Dom.HElement -&gt; seq&lt;Html.Dom.HElement&gt;<br /><br />Full name: FSharp.Enterprise.Html.Dom.descendantsBy</div>
+<div class="tip" id="fs24">val elem : Html.Dom.HElement</div>
+<div class="tip" id="fs25">property Html.Dom.HElement.Name: string</div>
+<div class="tip" id="fs26">val toArray : source:seq&lt;&#39;T&gt; -&gt; &#39;T []<br /><br />Full name: Microsoft.FSharp.Collections.Seq.toArray</div>
+<div class="tip" id="fs27">val firstPElement : Html.Dom.HElement<br /><br />Full name: Core.Html.firstPElement</div>
+<div class="tip" id="fs28">val first : f:(Html.Dom.HElement -&gt; bool) -&gt; (Html.Dom.HElement -&gt; Html.Dom.HElement)<br /><br />Full name: FSharp.Enterprise.Html.Dom.first</div>
+<div class="tip" id="fs29">val allContent : string list []<br /><br />Full name: Core.Html.allContent</div>
+<div class="tip" id="fs30">val values : elems:seq&lt;Html.Dom.HElement&gt; -&gt; seq&lt;string list&gt;<br /><br />Full name: FSharp.Enterprise.Html.Dom.values</div>
+<div class="tip" id="fs31">val html : string<br /><br />Full name: Core.Html.html</div>
+<div class="tip" id="fs32">val sb : StringBuilder</div>
+<div class="tip" id="fs33">Multiple items<br />type StringBuilder =<br />&#160;&#160;new : unit -&gt; StringBuilder + 5 overloads<br />&#160;&#160;member Append : value:string -&gt; StringBuilder + 18 overloads<br />&#160;&#160;member AppendFormat : format:string * arg0:obj -&gt; StringBuilder + 4 overloads<br />&#160;&#160;member AppendLine : unit -&gt; StringBuilder + 1 overload<br />&#160;&#160;member Capacity : int with get, set<br />&#160;&#160;member Chars : int -&gt; char with get, set<br />&#160;&#160;member Clear : unit -&gt; StringBuilder<br />&#160;&#160;member CopyTo : sourceIndex:int * destination:char[] * destinationIndex:int * count:int -&gt; unit<br />&#160;&#160;member EnsureCapacity : capacity:int -&gt; int<br />&#160;&#160;member Equals : sb:StringBuilder -&gt; bool<br />&#160;&#160;...<br /><br />Full name: System.Text.StringBuilder<br /><br />--------------------<br />StringBuilder() : unit<br />StringBuilder(capacity: int) : unit<br />StringBuilder(value: string) : unit<br />StringBuilder(value: string, capacity: int) : unit<br />StringBuilder(capacity: int, maxCapacity: int) : unit<br />StringBuilder(value: string, startIndex: int, length: int, capacity: int) : unit</div>
+<div class="tip" id="fs34">val sr : StringWriter</div>
+<div class="tip" id="fs35">Multiple items<br />type StringWriter =<br />&#160;&#160;inherit TextWriter<br />&#160;&#160;new : unit -&gt; StringWriter + 3 overloads<br />&#160;&#160;member Close : unit -&gt; unit<br />&#160;&#160;member Encoding : Encoding<br />&#160;&#160;member FlushAsync : unit -&gt; Task<br />&#160;&#160;member GetStringBuilder : unit -&gt; StringBuilder<br />&#160;&#160;member ToString : unit -&gt; string<br />&#160;&#160;member Write : value:char -&gt; unit + 2 overloads<br />&#160;&#160;member WriteAsync : value:char -&gt; Task + 2 overloads<br />&#160;&#160;member WriteLineAsync : value:char -&gt; Task + 2 overloads<br /><br />Full name: System.IO.StringWriter<br /><br />--------------------<br />StringWriter() : unit<br />StringWriter(formatProvider: IFormatProvider) : unit<br />StringWriter(sb: StringBuilder) : unit<br />StringWriter(sb: StringBuilder, formatProvider: IFormatProvider) : unit</div>
+<div class="tip" id="fs36">val toXHtml : writer:TextWriter -&gt; element:Html.Dom.HElement -&gt; unit<br /><br />Full name: FSharp.Enterprise.Html.Dom.toXHtml</div>
+<div class="tip" id="fs37">StringBuilder.ToString() : string<br />StringBuilder.ToString(startIndex: int, length: int) : string</div>
+
         </div>
         <div class="span3">
 
