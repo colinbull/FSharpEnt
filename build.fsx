@@ -1,6 +1,6 @@
 ﻿#r "tools/Fake/tools/FakeLib.dll"
-#I "packages/FSharp.Formatting.1.0.10/lib/net40"
-#load "packages/FSharp.Formatting.1.0.10/literate/literate.fsx"
+#I "packages/FSharp.Formatting.1.0.13/lib/net40"
+#load "packages/FSharp.Formatting.1.0.13/literate/literate.fsx"
 
 open Fake
 open System.IO
@@ -8,7 +8,7 @@ open FSharp.Literate
 
 let nugetPath = Path.GetFullPath("./.nuget/nuget.exe")
 
-let projectName, version = "FSharp.Enterprise",  if isLocalBuild then "0.0.4-alpha" else tcBuildNumber
+let projectName, version = "FSharp.Enterprise",  if isLocalBuild then "0.0.5-alpha" else tcBuildNumber
 
 let buildDir, testDir, deployDir, docsDir, nugetDir = @"build\artifacts", @"build\test", @"build\deploy", @"build\docs", @"build\nuget"
 let nugetDocsDir = nugetDir @@ "docs"
@@ -98,6 +98,7 @@ Target "BuildNuGet" (fun _ ->
             Version = version
             OutputPath = nugetDir
             AccessKey = nugetKey
+            ToolPath = nugetPath
             Publish = nugetKey <> ""})
         "FSharp.Enterprise.nuspec"
     [

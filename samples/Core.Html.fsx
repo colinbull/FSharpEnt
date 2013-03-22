@@ -12,7 +12,6 @@ open System.Text
 open FSharp.Enterprise
 
 (**
-
 ## Tokenisation
 
 Tokenisation is
@@ -29,23 +28,16 @@ let tokenisedResult =
     use ms = new MemoryStream(Encoding.UTF8.GetBytes(str))
     use sr = new StreamReader(ms)
     Html.tokenise sr |> Seq.toList
+(** 
+The result of the above code gives
 
-(** The result of the above code gives
+    val tokenisedResult : Html.HtmlToken list =
+      [Tag (false,"html",[]); Tag (false,"body",[]);
+       Tag (false,"p",[("align", "right")]); Text "Begin &amp; start"; TagEnd "p";
+       Tag (false,"p",[("align", "right")]); Text "Begin &amp; end"; TagEnd "p";
+       TagEnd "body"; TagEnd "html"]
 
-    [
-       Tag (false,"html",[]); 
-       Tag (false,"body",[]);
-       Tag (false,"p",[("align","right")]); 
-       Text "Begin &amp; start";
-       TagEnd "p"; 
-       Tag (false,"p",[("align","right")]); 
-       Text "Begin &amp; end";
-       TagEnd "p"; 
-       TagEnd "body"; 
-       TagEnd "html";
-    ]
-
-##Parsing
+## Parsing
 
 Parsing is
 
@@ -53,8 +45,7 @@ Parsing is
 
 again according to wikipedia. Parsing takes the sequence of tokens from the tokenising phase and builds a DOM which represents the underlying document.
 Parsing in the `Html` module is handled by `Html.Dom.parse` function. This wraps the above tokenisation function. Running the same example as above
-*) 
-
+*)
 let parsedResult = 
     use ms = new MemoryStream(Encoding.UTF8.GetBytes(str))
     use sr = new StreamReader(ms)
@@ -90,6 +81,8 @@ let allPElements =  Html.Dom.descendantsBy (fun elem -> elem.Name = "p") parsedR
           ("p",[HAttribute ("align", "right")],[HContent "Begin &amp; start"]);
         HElement
           ("p",[HAttribute ("align", "right")],[HContent "Begin &amp; end"])|]
+
+This walks the tree selecting all elements which statisfies the given predicate. 
 *)
 
 let firstPElement = Html.Dom.first (fun elem -> elem.Name = "p") parsedResult
@@ -99,7 +92,8 @@ let firstPElement = Html.Dom.first (fun elem -> elem.Name = "p") parsedResult
     val firstPElement : Html.Dom.HElement =
       HElement
         ("p",[HAttribute ("align", "right")],[HContent "Begin &amp; start"])
-    
+
+This walks the tree and selects the first element that matches the predicate. If no such elements are found a `KeyNotFoundException` will be thrown.    
 *)
 
 let allContent = allPElements |> Html.Dom.values |> Seq.toArray
@@ -108,7 +102,11 @@ let allContent = allPElements |> Html.Dom.values |> Seq.toArray
     val allContent : string list [] =
       [|["Begin &amp; start"]; ["Begin &amp; end"]|]
 
-Also once we have a tree we may want to serialise it back to html
+This walks the tree extracting the values from all of the `HContent` elements found within the tree.
+
+##Writing out XHTML
+
+Once we have a dom, we may wish to write it out. This can be achieved using the `toXHtml` function.
 *)
 
 let html = 
@@ -116,8 +114,6 @@ let html =
     use sr = new StringWriter(sb)
     Html.Dom.toXHtml sr parsedResult
     sb.ToString()
-
-printfn "%s" html
 
 (**
     <html>

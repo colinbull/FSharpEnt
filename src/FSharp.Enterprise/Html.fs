@@ -268,7 +268,7 @@ module Html =
 
         let descendants = descendantsBy (fun _ -> true)
 
-        let first f = descendantsBy f >> Seq.head
+        let first f = descendants >> Seq.find f
 
         let values elems = Seq.map (fun (e:HElement) -> e.Value) elems
 
