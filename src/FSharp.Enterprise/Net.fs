@@ -5,6 +5,7 @@ module Net =
     open System
     open System.IO
     open System.Net
+    open System.Security.Principal
 
     let findFirstFreePort (defaultPort : int) =
         let usedports = NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners() |> Seq.map (fun x -> x.Port)
@@ -18,8 +19,116 @@ module Net =
              else port.Value
         sprintf "http://%s:%s/" Environment.MachineName port
 
-    let getDefaultProxy() =
+    let getDefaultProxy(credentials) =
         let p = System.Net.WebRequest.DefaultWebProxy
-        p.Credentials <- System.Net.CredentialCache.DefaultNetworkCredentials
+        p.Credentials <- defaultArg credentials (System.Net.CredentialCache.DefaultNetworkCredentials :> ICredentials)
         p
+
+    let setUrlAcl port = 
+        let cmd, args =
+            if Environment.OSVersion.Version.Major > 5
+            then "netsh", String.Format(@"http add urlacl url=http://+:{0}/ user=""{1}""", port, WindowsIdentity.GetCurrent().Name);
+            else "httpcfg", String.Format(@"set urlacl /u http://+:{0}/ /a D:(A;;GX;;;""{1}"")", port, WindowsIdentity.GetCurrent().User);
+        match Process.executeElevated (fun si -> si.Arguments <- args; si.FileName <- cmd) (TimeSpan.FromSeconds(5.)) Process.Silent with
+        | 0 -> ()
+        | a -> failwithf "Failed to grant rights for listening to http, exit code: %d" a
+
+    let canListenOnPort port = 
+        try
+            let httpListener = new HttpListener()
+            httpListener.Prefixes.Add("http://+:" + port + "/")
+            httpListener.Start()
+            httpListener.Stop()
+            true
+        with
+        | :? HttpListenerException as e ->
+            if e.ErrorCode <> 5
+            then raise(InvalidOperationException("Could not listen to port " + port, e))
+            false
+
+    module Request = 
+        
+        open System.Net.Security
+
+        type T<'a> = {
+              Url : string
+              Method : string
+              Credentials : ICredentials
+              Proxy : IWebProxy
+              Timeout : TimeSpan
+              Context : 'a
+           }
+           with 
+               static member Create(uri, methd, ?context, ?credentials, ?proxy, ?timeout) =
+                   {
+                       Url = uri
+                       Method = methd
+                       Credentials = defaultArg credentials null
+                       Proxy = defaultArg proxy (getDefaultProxy(None))
+                       Timeout = defaultArg timeout (TimeSpan.FromSeconds(30.))
+                       Context = defaultArg context Unchecked.defaultof<_>
+                   }
+        
+        type Result<'a, 'b> = 
+             | Success of T<'a> * 'b
+             | Failure of T<'a> * exn
+        
+        let run configureRequest handler (req : T<'a>)=  
+               async {
+                   try 
+                        let r = WebRequest.Create(req.Url)
+                        r.Method <- req.Method
+                        r.Proxy <- req.Proxy
+                        r.Credentials <- req.Credentials
+                        r.Timeout <- (req.Timeout.TotalMilliseconds |> int)
+                        configureRequest(r)
+                        use! response = r.AsyncGetResponse()
+                        let result = handler req.Context (response.GetResponseStream())
+                        response.Close()
+                        return Success(req, result)
+                    with e ->
+                        return Failure(req, e)
+               }
+        
+    module Ftp =
+        
+        type Entry = {
+             Directory : string
+             File : string
+             FullPath : string
+        }
+        with
+           static member Create(directory, file) =
+               {
+                   Directory = directory
+                   File = file
+                   FullPath = directory.TrimEnd('/') + "/" + file
+               }
+               
+        let list url credentials = 
+            let parseFtpList (context : unit) (stream : Stream) : Entry[] =
+                use sr = new StreamReader(stream, Text.Encoding.Default)
+                match sr.Peek() |> char with
+                | '<' -> 
+                        Html.Dom.parse sr
+                        |> Html.Dom.descendantsBy (fun e -> e.Name = "a")
+                        |> Seq.choose (fun e -> e.TryGetAttribute "href")         
+                        |> Seq.map (fun link -> Entry.Create(url, link.Value))
+                        |> Seq.toArray
+                | _ ->
+                    seq {
+                        let line = ref (sr.ReadLine())
+                        while !line <> null do
+                            yield Entry.Create(url, !line)
+                            line := sr.ReadLine()
+                    } |> Seq.toArray
+            async {
+                let! result = 
+                        Request.T<unit>.Create(url, WebRequestMethods.Ftp.ListDirectory, ?credentials = credentials)
+                        |> Request.run (fun _ -> ()) parseFtpList
+        
+                match result with
+                | Request.Success(_,r) -> return r
+                | Request.Failure(_,err) -> return raise(err)
+            } 
     

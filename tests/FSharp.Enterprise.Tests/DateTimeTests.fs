@@ -1,4 +1,4 @@
-﻿namespace FSharp.Enterprise.Common.Tests
+﻿namespace FSharp.Enterprise.Tests
 
 open System
 open NUnit.Framework

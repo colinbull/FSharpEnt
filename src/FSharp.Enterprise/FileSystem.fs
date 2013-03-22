@@ -5,58 +5,12 @@ module FileSystem =
     open System
     open System.IO
     open System.Runtime.Caching
+    open FSharp.Enterprise
     open Serialisation
+    open Caching
+    open IO
 
-    let private cache : MemoryCache = MemoryCache.Default;
-    let mutable private  slidingExpiration = TimeSpan.FromSeconds(15.)
-     
-    let private itemRemovedHandler (f  : string -> obj -> unit) = 
-        new CacheEntryRemovedCallback(
-                          fun x -> 
-                            match x.RemovedReason with
-                            | CacheEntryRemovedReason.Expired ->
-                                            f x.CacheItem.Key x.CacheItem.Value
-                            | _ -> ())
-     
-    let private doWrite (serialiser : ISerialiser<string>) (path : string) (payload : 'a) =
-            let payload = serialiser.Serialise(payload)
-            File.WriteAllText(path, payload)
-
-    let private addToWriteCache (serialiser : ISerialiser<string>) (path : string) (payload : 'a) (cache : MemoryCache) =
-        cache.Set(path, payload, new CacheItemPolicy(SlidingExpiration = slidingExpiration, RemovedCallback = itemRemovedHandler (doWrite serialiser)))
-    
-    let setExpiration expiration = 
-        slidingExpiration <- expiration
-
-    let write (serialiser : ISerialiser<string>) path payload =
-        addToWriteCache serialiser path payload cache
-
-    let read<'a> path (serialiser : ISerialiser<string>) =
-        if cache.Contains(path)
-        then unbox<'a> (cache.Get(path)) |> Some
-        else
-            if IO.File.Exists(path)
-            then
-                use fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
-                use sr = new StreamReader(fs)
-                Json.toObject<'a> (sr.ReadToEnd()) |> Some
-            else None
-
-    let readAllFiltered<'a> predicate path (serialiser : ISerialiser<string>) =
-        seq {
-            for file in Directory.EnumerateFiles(path) |> Seq.filter predicate do
-                match read<'a> file serialiser with
-                | Some(a) -> yield a 
-                | None -> ()
-        }
-
-    let readAll<'a> = readAllFiltered<'a> (fun _ -> true)
-
-    let delete path = 
-        if cache.Contains(path) then cache.Remove(path) |> ignore
-        if File.Exists(path) then File.Delete(path)
-
-    let fullPathFrom rootDir file = 
+    let fullPathRelativeTo rootDir file = 
         match Path.IsPathRooted(file) with
         | true -> file
         | false -> 
@@ -64,4 +18,40 @@ module FileSystem =
              | Some(root) -> Path.Combine(root, file)
              | None -> Path.GetFullPath(file)
         |> fun x -> new FileInfo(x)
+    
+    [<AutoOpen>]
+    module Search = 
+        
+        type T = {
+            Recurse : bool
+            Root : string
+            FilePattern : string
+        }
+
+        let private parse (str:string) = 
+            let dir, filePattern = 
+                let fname = Path.GetFileName(str)
+                if Directory.Exists(str)
+                then 
+                    let fi = FileInfo(str)
+                    if fi.Attributes = FileAttributes.Directory
+                    then fi.FullName, "*.*" 
+                    else fi.Directory.FullName, fname
+                else Path.GetDirectoryName(str), fname
+            let isRecursive = dir.EndsWith("**")
+            let root = Path.GetFullPath(if isRecursive then dir.Replace("**", "").Trim([|'\\';'/'|]) else dir) 
+            let result =  { Recurse = isRecursive; Root = root; FilePattern = filePattern }
+            result
+           
+
+        let DefaultSearcher (searchParams:T) = 
+            if searchParams.Recurse
+            then Directory.EnumerateFileSystemEntries(searchParams.Root, searchParams.FilePattern, SearchOption.AllDirectories)
+            else Directory.EnumerateFileSystemEntries(searchParams.Root, searchParams.FilePattern)
+
+        let findFiles searcher pattern  =
+            parse pattern |> (defaultArg searcher DefaultSearcher)
+
+    let FileIO serialiser = IO serialiser File.ReadAllText File.WriteAllText File.Delete (findFiles None)
+    let CachedFileIO serialiser expiry = CachedIO serialiser expiry File.ReadAllText File.WriteAllText File.Delete (findFiles None)
 

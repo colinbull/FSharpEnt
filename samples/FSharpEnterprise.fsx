@@ -8,6 +8,7 @@ providing a full set of helpers for:
 * Scheduling
 * Serialisaton
 * Messaging
+* Web
 * and much more...
 
 This library is intended to complement other F# libraries, such as [FSharpx](http://github.com/fsharp/fsharpx) 
@@ -20,12 +21,16 @@ This provides a core set of modules,
 
 * [Agent](Core.Agent.html)
 * [Async](Core.Async.html)
+* [Caching](Core.Caching.html)
 * [Channel](Core.Channel.html)
 * [DateTime](Core.DateTime.html)
 * [Environment](Core.Environment.html)
 * [FileSystem](Core.FileSystem.html)
+* [Html](Core.Html.html)
+* [IO](Core.IO.html)
 * [Json](Core.Json.html)
 * [Net](Core.Net.html)
+* [Process](Core.Process.html)
 * [Regex](Core.Regex.html)
 * [Scheduling](Core.Scheduling.html)
 * [Security](Core.Security.html)
@@ -44,11 +49,9 @@ This provides a set of types that implement common messaging patterns over Rabbi
 
 ## FSharp.Enterprise.Web.dll
 
-This provides a set of modules and extensions that helps with web.
+This provides a set of modules and extensions that helps with web programming.
 
-* [Html](Web.Html.html)
 * [Channels](Web.Channel.html)
-* [Net](Web.Net.html)
 * [WebAPI](Web.WebApi.html)
 
 *)

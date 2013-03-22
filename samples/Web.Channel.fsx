@@ -25,7 +25,7 @@ let formatter = new JsonMediaTypeFormatter()
 formatter.SerializerSettings <- Serialisation.Json.settings
 
 (**
-    Here we use the default Json formatter but we override the serialiser settings with ones provided by the core library (see. here)[Core.Json.html]
+Here we use the default Json formatter but we override the serialiser settings with ones provided by the core library (see. here)[Core.Json.html]
 
 *)
 
