@@ -2,6 +2,17 @@
 
 module Security =
     
+    module Permissons = 
+        
+        open System.Security.Principal
+
+        let requiresAdmin adminF compensation = 
+            let principal = new WindowsPrincipal(WindowsIdentity.GetCurrent())
+            if principal.IsInRole WindowsBuiltInRole.Administrator then
+                adminF()
+            else
+                compensation()
+
     module User = 
         
         open System.Security

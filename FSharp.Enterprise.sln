@@ -11,12 +11,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{32F6
 	ProjectSection(SolutionItems) = preProject
 		samples\Core.Agent.fsx = samples\Core.Agent.fsx
 		samples\Core.Async.fsx = samples\Core.Async.fsx
+		samples\Core.Caching.fsx = samples\Core.Caching.fsx
 		samples\Core.Channel.fsx = samples\Core.Channel.fsx
 		samples\Core.DateTime.fsx = samples\Core.DateTime.fsx
 		samples\Core.Environment.fsx = samples\Core.Environment.fsx
 		samples\Core.FileSystem.fsx = samples\Core.FileSystem.fsx
+		samples\Core.Html.fsx = samples\Core.Html.fsx
+		samples\Core.IO.fsx = samples\Core.IO.fsx
 		samples\Core.Json.fsx = samples\Core.Json.fsx
 		samples\Core.Net.fsx = samples\Core.Net.fsx
+		samples\Core.Process.fsx = samples\Core.Process.fsx
 		samples\Core.Regex.fsx = samples\Core.Regex.fsx
 		samples\Core.Scheduling.fsx = samples\Core.Scheduling.fsx
 		samples\Core.Security.fsx = samples\Core.Security.fsx
@@ -29,8 +33,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{32F6
 		samples\RabbitMq.PubSub.fsx = samples\RabbitMq.PubSub.fsx
 		samples\RabbitMq.RPC.fsx = samples\RabbitMq.RPC.fsx
 		samples\Web.Channel.fsx = samples\Web.Channel.fsx
-		samples\Web.Html.fsx = samples\Web.Html.fsx
-		samples\Web.Net.fsx = samples\Web.Net.fsx
 		samples\Web.WebApi.fsx = samples\Web.WebApi.fsx
 	EndProjectSection
 EndProject

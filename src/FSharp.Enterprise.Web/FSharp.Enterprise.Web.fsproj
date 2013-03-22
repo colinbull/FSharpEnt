@@ -61,8 +61,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="WebApi.fs" />
-    <Compile Include="Html.fs" />
-    <Compile Include="Net.fs" />
     <Compile Include="Channel.fs" />
     <None Include="Script.fsx" />
     <None Include="packages.config" />
