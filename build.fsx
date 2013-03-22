@@ -6,7 +6,8 @@ open Fake
 open System.IO
 open FSharp.Literate
 
-let nugetPath = Path.GetFullPath("./.nuget/nuget.exe")
+let nugetPath = Path.Combine(__SOURCE_DIRECTORY__,@"tools\NuGet\NuGet.exe")
+
 
 let projectName, version = "FSharp.Enterprise",  if isLocalBuild then "0.0.5-alpha" else tcBuildNumber
 
@@ -68,7 +69,7 @@ Target "Docs" (fun _ ->
     let output = docsDir
     
     Literate.ProcessDirectory(sources, template, output)
-
+    
     XCopy docsDir "docs"
 )
 
@@ -82,7 +83,7 @@ Target "Deploy" (fun _ ->
 Target "BuildNuGet" (fun _ ->
     CleanDirs [nugetDir; nugetDocsDir]
     XCopy docsDir nugetDocsDir
-
+    printfn "%s" nugetPath
     [
         "lib", buildDir + "\FSharp.Enterprise.dll"
         "lib", buildDir + "\FSharp.Enterprise.RabbitMq.dll"
@@ -97,10 +98,11 @@ Target "BuildNuGet" (fun _ ->
             Description = "F# Enterprise Library collection"
             Version = version
             OutputPath = nugetDir
+            WorkingDir = nugetDir
             AccessKey = nugetKey
-            ToolPath = nugetPath
+           // ToolPath = "tools\Nuget\Nuget.exe"
             Publish = nugetKey <> ""})
-        "FSharp.Enterprise.nuspec"
+        ("./FSharp.Enterprise.nuspec")
     [
        (nugetDir) + sprintf "\FSharp.Enterprise.%s.nupkg" version
     ] |> CopyTo deployDir
