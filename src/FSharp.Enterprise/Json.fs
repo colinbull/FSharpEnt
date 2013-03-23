@@ -42,7 +42,6 @@ module Json =
                  doRead "1" reader
                  doRead "2" reader
                  let case = cases |> Array.find(fun x -> x.Name = if reader.Value = null then "None" else reader.Value.ToString())
-                 printfn "%A" case
                  doRead "3" reader
                  let fields =
                     if reader.Value <> null
