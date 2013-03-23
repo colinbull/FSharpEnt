@@ -138,7 +138,11 @@ recursive structure, standard F# modules like 'List' and 'Seq' will get us a lon
 <span class="l">1: </span><span class="k">let</span> <span onmouseout="hideTip(event, 'fs31', 63)" onmouseover="showTip(event, 'fs31', 63)" class="i">html</span> <span class="o">=</span> 
 <span class="l">2: </span>    <span class="k">let</span> <span onmouseout="hideTip(event, 'fs32', 64)" onmouseover="showTip(event, 'fs32', 64)" class="i">sb</span> <span class="o">=</span> <span class="k">new</span> <span onmouseout="hideTip(event, 'fs33', 65)" onmouseover="showTip(event, 'fs33', 65)" class="i">StringBuilder</span>()
 <span class="l">3: </span>    <span class="k">use</span> <span onmouseout="hideTip(event, 'fs34', 66)" onmouseover="showTip(event, 'fs34', 66)" class="i">sr</span> <span class="o">=</span> <span class="k">new</span> <span onmouseout="hideTip(event, 'fs35', 67)" onmouseover="showTip(event, 'fs35', 67)" class="i">StringWriter</span>(<span onmouseout="hideTip(event, 'fs32', 68)" onmouseover="showTip(event, 'fs32', 68)" class="i">sb</span>)
+<<<<<<< HEAD
 <span class="l">4: </span>    <span onmouseout="hideTip(event, 'fs15', 69)" onmouseover="showTip(event, 'fs15', 69)" class="i">Html</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs20', 70)" onmouseover="showTip(event, 'fs20', 70)" class="i">Dom</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs36', 71)" onmouseover="showTip(event, 'fs36', 71)" class="i">write</span> <span onmouseout="hideTip(event, 'fs34', 72)" onmouseover="showTip(event, 'fs34', 72)" class="i">sr</span> <span onmouseout="hideTip(event, 'fs19', 73)" onmouseover="showTip(event, 'fs19', 73)" class="i">parsedResult</span>
+=======
+<span class="l">4: </span>    <span onmouseout="hideTip(event, 'fs15', 69)" onmouseover="showTip(event, 'fs15', 69)" class="i">Html</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs20', 70)" onmouseover="showTip(event, 'fs20', 70)" class="i">Dom</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs36', 71)" onmouseover="showTip(event, 'fs36', 71)" class="i">toXHtml</span> <span onmouseout="hideTip(event, 'fs34', 72)" onmouseover="showTip(event, 'fs34', 72)" class="i">sr</span> <span onmouseout="hideTip(event, 'fs19', 73)" onmouseover="showTip(event, 'fs19', 73)" class="i">parsedResult</span>
+>>>>>>> 12ae932adfad3bf641498bed92a755ad1635a2a4
 <span class="l">5: </span>    <span onmouseout="hideTip(event, 'fs32', 74)" onmouseover="showTip(event, 'fs32', 74)" class="i">sb</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs37', 75)" onmouseover="showTip(event, 'fs37', 75)" class="i">ToString</span>()</pre>
 <pre><code>&lt;html&gt;
   &lt;body&gt;
@@ -148,6 +152,7 @@ recursive structure, standard F# modules like 'List' and 'Seq' will get us a lon
 &lt;/html&gt;
 </code></pre>
 
+<<<<<<< HEAD
 <h2>Building forms for objects</h2>
 
 <p>The html module also provides functions for building forms from objects.</p>
@@ -201,6 +206,8 @@ recursive structure, standard F# modules like 'List' and 'Seq' will get us a lon
 <pre class="fssnip">
 <span class="l">1: </span>        </pre>
 
+=======
+>>>>>>> 12ae932adfad3bf641498bed92a755ad1635a2a4
           <div class="tip" id="fs1">namespace System</div>
 <div class="tip" id="fs2">namespace System.IO</div>
 <div class="tip" id="fs3">namespace System.Text</div>
@@ -236,6 +243,7 @@ recursive structure, standard F# modules like 'List' and 'Seq' will get us a lon
 <div class="tip" id="fs33">Multiple items<br />type StringBuilder =<br />&#160;&#160;new : unit -&gt; StringBuilder + 5 overloads<br />&#160;&#160;member Append : value:string -&gt; StringBuilder + 18 overloads<br />&#160;&#160;member AppendFormat : format:string * arg0:obj -&gt; StringBuilder + 4 overloads<br />&#160;&#160;member AppendLine : unit -&gt; StringBuilder + 1 overload<br />&#160;&#160;member Capacity : int with get, set<br />&#160;&#160;member Chars : int -&gt; char with get, set<br />&#160;&#160;member Clear : unit -&gt; StringBuilder<br />&#160;&#160;member CopyTo : sourceIndex:int * destination:char[] * destinationIndex:int * count:int -&gt; unit<br />&#160;&#160;member EnsureCapacity : capacity:int -&gt; int<br />&#160;&#160;member Equals : sb:StringBuilder -&gt; bool<br />&#160;&#160;...<br /><br />Full name: System.Text.StringBuilder<br /><br />--------------------<br />StringBuilder() : unit<br />StringBuilder(capacity: int) : unit<br />StringBuilder(value: string) : unit<br />StringBuilder(value: string, capacity: int) : unit<br />StringBuilder(capacity: int, maxCapacity: int) : unit<br />StringBuilder(value: string, startIndex: int, length: int, capacity: int) : unit</div>
 <div class="tip" id="fs34">val sr : StringWriter</div>
 <div class="tip" id="fs35">Multiple items<br />type StringWriter =<br />&#160;&#160;inherit TextWriter<br />&#160;&#160;new : unit -&gt; StringWriter + 3 overloads<br />&#160;&#160;member Close : unit -&gt; unit<br />&#160;&#160;member Encoding : Encoding<br />&#160;&#160;member FlushAsync : unit -&gt; Task<br />&#160;&#160;member GetStringBuilder : unit -&gt; StringBuilder<br />&#160;&#160;member ToString : unit -&gt; string<br />&#160;&#160;member Write : value:char -&gt; unit + 2 overloads<br />&#160;&#160;member WriteAsync : value:char -&gt; Task + 2 overloads<br />&#160;&#160;member WriteLineAsync : value:char -&gt; Task + 2 overloads<br /><br />Full name: System.IO.StringWriter<br /><br />--------------------<br />StringWriter() : unit<br />StringWriter(formatProvider: IFormatProvider) : unit<br />StringWriter(sb: StringBuilder) : unit<br />StringWriter(sb: StringBuilder, formatProvider: IFormatProvider) : unit</div>
+<<<<<<< HEAD
 <div class="tip" id="fs36">val write : writer:TextWriter -&gt; element:Html.Dom.HElement -&gt; unit<br /><br />Full name: FSharp.Enterprise.Html.Dom.write</div>
 <div class="tip" id="fs37">StringBuilder.ToString() : string<br />StringBuilder.ToString(startIndex: int, length: int) : string</div>
 <div class="tip" id="fs38">type StockLevel =<br />&#160;&#160;{Quantity: int;<br />&#160;&#160;&#160;OnOrder: int;<br />&#160;&#160;&#160;DueDate: DateTime;}<br /><br />Full name: Core.Html.StockLevel</div>
@@ -253,6 +261,10 @@ recursive structure, standard F# modules like 'List' and 'Seq' will get us a lon
 <div class="tip" id="fs50">val formDom : string<br /><br />Full name: Core.Html.formDom</div>
 <div class="tip" id="fs51">val createForm : readonly:bool -&gt; o:&#39;a -&gt; Html.Dom.HElement<br /><br />Full name: FSharp.Enterprise.Html.Dom.createForm</div>
 <div class="tip" id="fs52">val printfn : format:Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T<br /><br />Full name: Microsoft.FSharp.Core.ExtraTopLevelOperators.printfn</div>
+=======
+<div class="tip" id="fs36">val toXHtml : writer:TextWriter -&gt; element:Html.Dom.HElement -&gt; unit<br /><br />Full name: FSharp.Enterprise.Html.Dom.toXHtml</div>
+<div class="tip" id="fs37">StringBuilder.ToString() : string<br />StringBuilder.ToString(startIndex: int, length: int) : string</div>
+>>>>>>> 12ae932adfad3bf641498bed92a755ad1635a2a4
 
         </div>
         <div class="span3">
