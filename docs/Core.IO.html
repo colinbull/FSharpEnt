@@ -34,7 +34,21 @@
       <hr />
       <div class="row">
         <div class="span9" id="main">
-          <h1>F# Enterprise - Serialisation</h1>
+          <h1>F# Enterprise - IO</h1>
+
+<p>IO in <code>FSharp.Enterprise</code> is abstracted by the <code>IIO</code> interface that defines the following types</p>
+
+<pre><code>    type SearchPattern = string
+    type FileFilter = (string -&gt; bool)
+    type Path = string
+
+    type IIO =
+        abstract member Write : Path * 'a -&gt; unit
+        abstract member Read : Path -&gt; 'a option
+        abstract member ReadAll : Path * FileFilter -&gt; seq&lt;'a&gt;
+        abstract member ReadAll : seq&lt;SearchPattern&gt; -&gt; seq&lt;'a&gt;
+        abstract member Delete : Path -&gt; unit
+</code></pre>
 
           
         </div>
