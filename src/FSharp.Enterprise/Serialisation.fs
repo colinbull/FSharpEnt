@@ -16,10 +16,6 @@ module Serialisation =
     open Newtonsoft.Json.Linq
     open Newtonsoft.Json.Converters
     open FSharp.Enterprise
-
-    type ISerialiser<'output> =
-        abstract member Serialise : 'a -> 'output
-        abstract member Deserialise : 'output -> 'a
     
     module Raw = 
 
@@ -42,26 +38,11 @@ module Serialisation =
             let sr = new StreamReader(stream)
             box(sr.ReadToEnd()) :?> 'a
 
-        let ByteSerialiser =
-            { new ISerialiser<byte[]> with
-                member x.Serialise(payload) = toByteArray payload
-                member x.Deserialise(body) = ofByteArray body }
-
-        let StringSerialiser =
-            { new ISerialiser<string> with
-                member x.Serialise(payload) = toString payload
-                member x.Deserialise(body) = ofString body }
-
-        let StreamSerialiser stream = 
-            { new ISerialiser<Stream> with
-                member x.Serialise(payload) = toStream payload stream
-                member x.Deserialise(body) = ofStream body
-            }
-
     module Json = 
         let settings = 
                 let jss = new JsonSerializerSettings()
                 jss.Converters.Add(new Json.UnionTypeConverter())
+                jss.Converters.Add(new Json.MapTypeConverter())
                 jss.Converters.Add(new IsoDateTimeConverter())
                 jss.NullValueHandling <- NullValueHandling.Ignore
                 jss
@@ -89,7 +70,7 @@ module Serialisation =
             let sw = new StreamWriter(stream)
             let writer = new JsonTextWriter(sw)      
             ser.Serialize(writer, payload)
-            stream
+            
 
         let ofStream<'a> (stream : Stream) = 
             let ser = JsonSerializer.Create(settings)
@@ -97,27 +78,6 @@ module Serialisation =
             let reader = new JsonTextReader(sr)
             unbox<'a> (ser.Deserialize(reader, typeof<'a>))
         
-        let ByteSerialiser =
-            { new ISerialiser<byte[]> with
-                member x.Serialise(payload) = toByteArray payload
-                member x.Deserialise(body) = ofByteArray body }
-
-        let StringSerialiser =
-            { new ISerialiser<string> with
-                member x.Serialise(payload) = toString payload
-                member x.Deserialise(body) = ofString body }
-
-        let StreamSerialiser stream = 
-            { new ISerialiser<Stream> with
-                member x.Serialise(payload) = toStream payload stream
-                member x.Deserialise(body) = ofStream body
-            }
-
-        let JObjectSerialiser =
-            { new ISerialiser<JObject> with
-                member x.Serialise(payload) = JObject.FromObject payload
-                member x.Deserialise(body) =  body.ToObject<_>() }
-
     module Xml = 
         
         open System.Reflection
@@ -141,7 +101,6 @@ module Serialisation =
             try
                 let dcs = createSerialiser (typedefof<'a>)
                 dcs.WriteObject(writer, payload)
-                stream
             finally
                 writer.Close()
         
@@ -155,11 +114,8 @@ module Serialisation =
 
         let toByteArray (payload:'a) =
             use ms = new MemoryStream()
-            seq {
-                use sr = new StreamReader(toStream payload ms)
-                while not <| sr.EndOfStream do
-                    yield sr.Read() |> byte
-            } |> Seq.toArray
+            toStream payload ms
+            ms.ToArray()
 
         let ofByteArray (bytes:byte[]) =
             use ms = new MemoryStream(bytes)
@@ -167,7 +123,9 @@ module Serialisation =
 
         let toString (payload:'a) =
             use ms = new MemoryStream()
-            use sr = new StreamReader(toStream payload ms)
+            toStream payload ms
+            ms.Position <- 0L
+            use sr = new StreamReader(ms)
             sr.ReadToEnd()
 
         let ofString xml = 
@@ -177,22 +135,6 @@ module Serialisation =
                 unbox<'a> (dcs.ReadObject(reader, true))
             finally
                 reader.Close()
-
-        let ByteSerialiser =
-            { new ISerialiser<byte[]> with
-                member x.Serialise(payload) = toByteArray payload
-                member x.Deserialise(body) = ofByteArray body }
-
-        let StringSerialiser =
-            { new ISerialiser<string> with
-                member x.Serialise(payload) = toString payload
-                member x.Deserialise(body) = ofString body }
-
-        let StreamSerialiser stream = 
-            { new ISerialiser<Stream> with
-                member x.Serialise(payload) = toStream payload stream
-                member x.Deserialise(body) = ofStream body
-            }
 
     module Binary = 
         
@@ -210,8 +152,4 @@ module Serialisation =
             let bin = new BinaryFormatter()
             unbox<_> (bin.Deserialize(ms))
 
-        let ByteSerialiser =
-            { new ISerialiser<byte[]> with
-                member x.Serialise(payload) = toByteArray payload
-                member x.Deserialise(body) = ofByteArray body }
 

@@ -18,6 +18,14 @@ module FileSystem =
              | Some(root) -> Path.Combine(root, file)
              | None -> Path.GetFullPath(file)
         |> fun x -> new FileInfo(x)
+
+    let tryReadFile deserialiser (path:string) =
+        if File.Exists(path)
+        then Some (File.ReadAllText(path) |> deserialiser)
+        else None
+
+    let write serialiser (path:string,payload:'a) =
+        File.WriteAllText(path, serialiser payload)
     
     [<AutoOpen>]
     module Search = 
@@ -52,6 +60,18 @@ module FileSystem =
         let findFiles searcher pattern  =
             parse pattern |> (defaultArg searcher DefaultSearcher)
 
-    let FileIO serialiser = IO serialiser File.ReadAllText File.WriteAllText File.Delete (findFiles None)
-    let CachedFileIO serialiser expiry = CachedIO serialiser expiry File.ReadAllText File.WriteAllText File.Delete (findFiles None)
+    let FileIO serialise deserialise = 
+        IO
+            (tryReadFile deserialise)
+            (write serialise)  
+            File.Delete 
+            (findFiles None)
+
+    let CachedFileIO serialise deserialise expiry = 
+        CachedIO 
+            expiry
+            (tryReadFile deserialise)
+            (write serialise)  
+            File.Delete 
+            (findFiles None)
 

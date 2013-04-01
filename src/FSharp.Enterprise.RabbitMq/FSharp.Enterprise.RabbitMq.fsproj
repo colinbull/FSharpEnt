@@ -97,7 +97,6 @@
     <Compile Include="Rpc.fs" />
     <Compile Include="PubSub.fs" />
     <Compile Include="Channel.fs" />
-    <None Include="Script.fsx" />
     <None Include="packages.config" />
     <Compile Include="AssemblyInfo.fs" />
   </ItemGroup>

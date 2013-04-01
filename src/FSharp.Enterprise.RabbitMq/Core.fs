@@ -13,20 +13,22 @@ open FSharp.Enterprise
 open FSharp.Enterprise.Serialisation
 
 
-type Location = {
+type Location<'a> = {
     Exchange : string
     ExchangeType : string
     Queue : string option
     RoutingKey : string
-    Serialiser : ISerialiser<byte[]>
+    Writer : 'a -> byte[]
+    Reader : byte[] -> 'a
 }
 with 
-    static member For<'a>(?exchangeType, ?routingKey, ?queue, ?serialiser) = 
+    static member For(?exchangeType, ?routingKey, ?queue, ?writer, ?reader) = 
            { Exchange = (typeof<'a>).FullName; 
              ExchangeType = defaultArg exchangeType "Topic"; 
              Queue = queue; 
              RoutingKey = defaultArg routingKey String.Empty 
-             Serialiser = defaultArg serialiser Json.ByteSerialiser
+             Writer = defaultArg writer Json.toByteArray
+             Reader = defaultArg reader Json.ofByteArray
            }
 
 type Listener<'a> = {
@@ -67,10 +69,10 @@ module private Core =
         connection.AutoClose <- true
         model
     
-    let declareExchange (loc : Location) (model : IModel) =
+    let declareExchange (loc : Location<_>) (model : IModel) =
         model.ExchangeDeclare(loc.Exchange, (loc.ExchangeType.ToLower()))
     
-    let createSubscription (loc : Location) (model : IModel) = 
+    let createSubscription (loc : Location<_>) (model : IModel) = 
         declareExchange loc model
         let queueName = 
             match loc.Queue with
