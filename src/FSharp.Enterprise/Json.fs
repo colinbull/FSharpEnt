@@ -9,6 +9,8 @@ module Json =
     open Newtonsoft.Json
     open Newtonsoft.Json.Linq
     open Newtonsoft.Json.Converters
+    open System.Text
+    open System.IO
     
     type UnionTypeConverter() =
         inherit JsonConverter()
@@ -156,5 +158,43 @@ module Json =
                 methodInfo.Invoke(null, [|kvsCopy|])
             else
                 box Map.empty
+
+    let settings = 
+            let jss = new JsonSerializerSettings()
+            jss.Converters.Add(new MapTypeConverter())
+            jss.Converters.Add(new IsoDateTimeConverter())
+            jss.NullValueHandling <- NullValueHandling.Ignore
+            jss
+    
+    let toJsonObject (vals : (string * obj) list) = 
+        let jo = JObject()
+        vals |> List.iter(fun (n,v) -> jo.Add(n, JToken.FromObject(v)))
+        jo
+    
+    let toByteArray (payload : 'a) =
+        JsonConvert.SerializeObject(payload,Formatting.None, settings)
+        |> Encoding.Default.GetBytes
+    
+    let ofByteArray<'a> (bytes : byte[]) =
+        JsonConvert.DeserializeObject<'a>(Encoding.Default.GetString(bytes), settings)
+    
+    let toString payload = 
+        JsonConvert.SerializeObject(payload,Formatting.None, settings)
+    
+    let ofString<'a> js = 
+        JsonConvert.DeserializeObject<'a>(js, settings)
+
+    let toStream payload (stream : Stream) = 
+        let ser = JsonSerializer.Create(settings)
+        let sw = new StreamWriter(stream)
+        let writer = new JsonTextWriter(sw)      
+        ser.Serialize(writer, payload)
+        
+
+    let ofStream<'a> (stream : Stream) = 
+        let ser = JsonSerializer.Create(settings)
+        let sr = new StreamReader(stream)
+        let reader = new JsonTextReader(sr)
+        unbox<'a> (ser.Deserialize(reader, typeof<'a>))
     
     

@@ -55,5 +55,18 @@ module String =
                     output.Seek(0L, SeekOrigin.Begin) |> ignore
                     use sr = new StreamReader(output)
                     return sr.ReadToEnd() 
-           }     
+           }
+           
+    let toStreamAsync (stream:Stream) (str:string) =
+        async {
+                let buffer = Array.zeroCreate (4 * 1024)
+                let reading = ref true
+
+                use sr = new StringReader(str)
+                
+                while reading.Value do
+                    let count = sr.ReadBlock(buffer, 0, buffer.Length)
+                    do! stream.AsyncWrite(buffer |> Array.map Convert.ToByte, 0, buffer.Length)
+                    reading := count > 0
+        }     
 

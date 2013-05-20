@@ -9,7 +9,7 @@ open FSharp.Literate
 let nugetPath = Path.Combine(__SOURCE_DIRECTORY__,@"tools\NuGet\NuGet.exe")
 
 
-let projectName, version = "FSharp.Enterprise",  if isLocalBuild then "0.0.5-alpha" else tcBuildNumber
+let projectName, version = "FSharp.Enterprise",  if isLocalBuild then "0.0.9-alpha" else tcBuildNumber
 
 let buildDir, testDir, deployDir, docsDir, nugetDir = @"build\artifacts", @"build\test", @"build\deploy", @"build\docs", @"build\nuget"
 let nugetDocsDir = nugetDir @@ "docs"
