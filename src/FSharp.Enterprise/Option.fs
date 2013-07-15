@@ -4,7 +4,7 @@ module Option =
     
     /// Accepts an option of option and concatenates them.
     let inline concat x = 
-        Option.bind id
+        Option.bind id x
 
 module OptionOperators =
 

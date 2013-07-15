@@ -4,7 +4,7 @@ module Geometry =
 
     open System
     open FSharp.Enterprise
-    open FSharp.Enterprise.DateTime.DateTimeExtensions
+    open FSharp.Enterprise.DateTimeOffset
 
     let inline checkNonNull argName arg = 
         match box arg with 
