@@ -6,7 +6,6 @@ module FileSystem =
     open System.IO
     open System.Runtime.Caching
     open FSharp.Enterprise
-    open Serialisation
     open Caching
     open IO
 

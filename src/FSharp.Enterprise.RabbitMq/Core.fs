@@ -10,7 +10,6 @@ open RabbitMQ.Client.Framing.v0_9_1
 open RabbitMQ.Client.Events
 open RabbitMQ.Client.MessagePatterns
 open FSharp.Enterprise
-open FSharp.Enterprise.Serialisation
 
 
 type Location<'a> = {
