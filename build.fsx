@@ -9,7 +9,7 @@ open FSharp.Literate
 let nugetPath = Path.Combine(__SOURCE_DIRECTORY__,@"tools\NuGet\NuGet.exe")
 
 
-let projectName, version = "FSharp.Enterprise",  if isLocalBuild then "0.0.9-alpha" else tcBuildNumber
+let projectName, version = "FSharp.Enterprise",  if isLocalBuild then ReadFileAsString "local_build_number.txt" else tcBuildNumber
 
 let buildDir, testDir, deployDir, docsDir, nugetDir = @"build\artifacts", @"build\test", @"build\deploy", @"build\docs", @"build\nuget"
 let nugetDocsDir = nugetDir @@ "docs"
@@ -42,6 +42,14 @@ Target "AssemblyInfo" (fun _ ->
                 Guid = "D93F9436-D1DD-4FB1-9C0A-52298F9F0215"
                 OutputFileName = "src/FSharp.Enterprise.RabbitMq/AssemblyInfo.fs"                
             })
+        AssemblyInfo (fun p -> 
+                  { p with 
+                      CodeLanguage = FSharp
+                      AssemblyVersion = version
+                      AssemblyTitle = projectName + ".Web"
+                      Guid = "C4855501-6D39-44CF-B55E-DE8EE16516AC"
+                      OutputFileName = "src/FSharp.Enterprise.Web/AssemblyInfo.fs"                
+                  })
 
 )
 
@@ -87,6 +95,7 @@ Target "BuildNuGet" (fun _ ->
     [
         "lib", buildDir + "\FSharp.Enterprise.dll"
         "lib", buildDir + "\FSharp.Enterprise.RabbitMq.dll"
+        "lib", buildDir + "\FSharp.Enterprise.Web.dll"
     ] |> Seq.iter (fun (folder, path) -> 
                     let dir = nugetDir @@ folder @@ "net40"
                     CreateDir dir

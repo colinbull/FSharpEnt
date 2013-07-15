@@ -45,6 +45,7 @@
     <Compile Include="Google.fs" />
     <Compile Include="WebApi.Formatters.fs" />
     <Compile Include="WebApi.Handlers.fs" />
+    <Compile Include="AssemblyInfo.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
