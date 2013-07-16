@@ -12,6 +12,7 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>FSharp.Enterprise.Tests</Name>
     <RestorePackages>true</RestorePackages>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -62,8 +63,12 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChannelTests.fs" />
     <Compile Include="DateTimeTests.fs" />
+    <Compile Include="DateTimeOffsetTests.fs" />
+    <Compile Include="GeometryTests.fs" />
+    <Compile Include="LookUpTests.fs" />
+    <Compile Include="MathTests.fs" />
+    <Compile Include="OptionOperatorsTests.fs" />
     <Compile Include="CronExpressionTests.fs" />
     <Compile Include="HtmlTests.fs" />
     <Compile Include="Html.Dom.Tests.fs" />

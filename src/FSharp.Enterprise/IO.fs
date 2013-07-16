@@ -5,23 +5,22 @@ module IO =
     open System
     open System.Runtime.Caching
     open FSharp.Enterprise
-    open Serialisation
     open Caching
 
     type SearchPattern = string
     type Filter = (string -> bool)
 
-    type IIO =
+    type IIO<'a> =
         abstract member Write : string * 'a -> unit
-        abstract member Read : string -> 'a
+        abstract member Read : string -> 'a option
         abstract member ReadAll : string * Filter -> seq<'a>
         abstract member ReadAll : seq<SearchPattern> -> seq<'a>
         abstract member Delete : string -> unit
     
-    let IO (serialiser:ISerialiser<'output>) readOp writeOp deleteOp searchOp =
-        { new IIO with
-            member f.Write(path, payload) = (path,serialiser.Serialise(payload)) |> writeOp 
-            member f.Read(path) = readOp path |> serialiser.Deserialise
+    let IO readOp writeOp deleteOp searchOp =
+        { new IIO<_> with
+            member f.Write(path, payload) = (path,payload) |> writeOp 
+            member f.Read(path) = readOp path
             member f.ReadAll(path, filter) = 
                     seq {
                         for file in (searchOp path) |> Seq.filter filter do
@@ -32,22 +31,22 @@ module IO =
             member f.ReadAll(patterns) = 
                 patterns
                 |> Seq.collect searchOp
-                |> Seq.map f.Read
+                |> Seq.choose f.Read
             member f.Delete(path) = deleteOp path
         }
 
-    let CachedIO (serialiser:ISerialiser<'output>) (expiry:TimeSpan) readOp writeOp deleteOp searchOp =
+    let CachedIO (expiry:TimeSpan) readOp writeOp deleteOp searchOp =
         let onRemoved reason path payload =
             match reason with
-            | CacheEntryRemovedReason.Expired -> (path,serialiser.Serialise(payload)) |> writeOp
+            | CacheEntryRemovedReason.Expired -> (path,payload) |> writeOp
             | _ -> ()
-        let cache : ICache<string,_> = Caching.ObjectCache onRemoved MemoryCache.Default
-        { new IIO with
-            member f.Write(path, payload) = cache.Set(path, SlidingExpiry(box payload,expiry))
+        let cache : ICache<string,'a> = Caching.ObjectCache onRemoved MemoryCache.Default
+        { new IIO<'a> with
+            member f.Write(path, payload) = cache.Set(path, SlidingExpiry(payload,expiry))
             member f.Read(path) =
                 match cache.TryGet(path) with
-                | Some(v) -> unbox<_> v
-                | None -> readOp path |> serialiser.Deserialise
+                | Some(v) -> Some v
+                | None -> readOp path
             member f.ReadAll(path, filter) = 
                 seq {
                     for file in (searchOp path) |> Seq.filter filter do
@@ -58,7 +57,7 @@ module IO =
             member f.ReadAll(patterns) = 
                 patterns
                 |> Seq.collect (searchOp)
-                |> Seq.map f.Read
+                |> Seq.choose f.Read
             member f.Delete(path) =
                cache.Remove(path) |> ignore
                deleteOp (path) 

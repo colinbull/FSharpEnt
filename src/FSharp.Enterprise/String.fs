@@ -3,6 +3,7 @@
 module String = 
     
     open System
+    open System.IO
 
     let toOption (str : string) = 
         if String.IsNullOrEmpty(str) || String.IsNullOrWhiteSpace(str)
@@ -39,4 +40,33 @@ module String =
             | h :: t -> replace (index + 1) h t
             | [] -> new String(chars)
         replace 0 '\000' (id |> Seq.toList)
+
+    let ofStreamAsync (stream:Stream) = 
+            async {
+                    let buffer = Array.zeroCreate (4 * 1024)
+                    use output = new MemoryStream()
+                    let reading = ref true
+  
+                    while reading.Value do
+                      let! count = stream.AsyncRead(buffer, 0, buffer.Length)
+                      output.Write(buffer, 0, count)
+                      reading := count > 0
+
+                    output.Seek(0L, SeekOrigin.Begin) |> ignore
+                    use sr = new StreamReader(output)
+                    return sr.ReadToEnd() 
+           }
+           
+    let toStreamAsync (stream:Stream) (str:string) =
+        async {
+                let buffer = Array.zeroCreate (4 * 1024)
+                let reading = ref true
+
+                use sr = new StringReader(str)
+                
+                while reading.Value do
+                    let count = sr.ReadBlock(buffer, 0, buffer.Length)
+                    do! stream.AsyncWrite(buffer |> Array.map Convert.ToByte, 0, buffer.Length)
+                    reading := count > 0
+        }     
 

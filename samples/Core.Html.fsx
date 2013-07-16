@@ -112,7 +112,7 @@ Once we have a dom, we may wish to write it out. This can be achieved using the 
 let html = 
     let sb = new StringBuilder()
     use sr = new StringWriter(sb)
-    Html.Dom.toXHtml sr parsedResult
+    Html.Dom.write sr parsedResult
     sb.ToString()
 
 (**
@@ -122,5 +122,60 @@ let html =
         <p align="right">Begin &amp;amp; end</p>
       </body>
     </html>
+
+##Building forms for objects
+The html module also provides functions for building forms from objects.
 *)
+
+type StockLevel = {
+    Quantity : int
+    OnOrder : int
+    DueDate : DateTime
+}
+
+type Product = {
+    Id : int
+    Name : string
+    Stock : StockLevel
+}
+
+let product =
+    { Id = 1; Name = "Cuddly Toy"; Stock = { Quantity = 0; OnOrder = 1; DueDate = DateTime(2012, 1,1) }}
+
+let formDom =
+    let sb = new StringBuilder()
+    use sr = new StringWriter(sb)
+    Html.Dom.createForm false product |> Html.Dom.write sr
+    sb.ToString()
+
+printfn "%s" formDom
+
+(**
+The above yields the following read only form. 
+
+<form>
+    <fieldset><legend>Product</legend>
+        <div>
+            <label for="Id">Id</label><input type="number" value="1" /></div>
+        <div>
+            <label for="Name">Name</label><input type="text" value="Cuddly Toy" /></div>
+        <div>
+            <fieldset><legend>StockLevel</legend>
+                <div>
+                    <label for="Quantity">Quantity</label><input type="number" value="0" /></div>
+                <div>
+                    <label for="OnOrder">OnOrder</label><input type="number" value="1" /></div>
+                <div>
+                    <label for="DueDate">DueDate</label><input type="datetime" value="01/01/2012 00:00:00" /></div>
+            </fieldset>
+        </div>
+        <div>
+            <button type="submit">Submit</button>
+            <button type="reset">Clear</button>
+        </div>
+    </fieldset>
+</form>
+
+*)
+        
 
