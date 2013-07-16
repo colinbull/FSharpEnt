@@ -40,11 +40,19 @@
   <ItemGroup>
     <Compile Include="DateTime.fs" />
     <Compile Include="Environment.fs" />
+    <Compile Include="Option.fs" />
+    <Compile Include="Seq.fs" />
+    <Compile Include="Math.fs" />
+    <Compile Include="LookUp.fs" />
+    <Compile Include="Geometry.fs" />
     <Compile Include="Caching.fs" />
+    <Compile Include="RingBuffer.fs" />
+    <Compile Include="Timeline.fs" />
+    <Compile Include="Timeseries.fs" />
     <Compile Include="Json.fs" />
     <Compile Include="Xml.fs" />
     <Compile Include="Html.fs" />
-    <Compile Include="Serialisation.fs" />
+    <Compile Include="Binary.fs" />
     <Compile Include="Regex.fs" />
     <Compile Include="String.fs" />
     <Compile Include="Uri.fs" />
@@ -56,12 +64,14 @@
     <Compile Include="Security.fs" />
     <Compile Include="IO.fs" />
     <Compile Include="FileSystem.fs" />
-    <Compile Include="Channel.fs" />
-    <Compile Include="Agent.fs" />
     <None Include="packages.config" />
     <Compile Include="AssemblyInfo.fs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FSharpx.Core">
+      <HintPath>..\..\packages\FSharpx.Core.1.8.32\lib\40\FSharpx.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>

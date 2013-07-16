@@ -10,14 +10,14 @@ open RabbitMQ.Client.Framing.v0_9_1
 open RabbitMQ.Client.Events
 open RabbitMQ.Client.MessagePatterns
 open FSharp.Enterprise
-open FSharp.Enterprise.Serialisation
 open Core
 
-type RpcClient(serverId : string, ?serialiser, ?timeout) =
+type RpcClient(serverId : string, ?reader : (byte[] -> obj), ?writer : (obj -> byte[]), ?timeout) =
      
      let clientCache = ref Map.empty<string,SimpleRpcClient>
      let error = new Event<exn>()
-     let serialiser : ISerialiser<byte[]> = defaultArg serialiser Json.ByteSerialiser
+     let reader = defaultArg reader Json.ofByteArray
+     let writer = defaultArg writer Json.toByteArray
 
      let client (serverId :string) =
           match (!clientCache).TryFind serverId with
@@ -33,15 +33,15 @@ type RpcClient(serverId : string, ?serialiser, ?timeout) =
      [<CLIEvent>]
      member x.Error = error.Publish
 
-     member x.PostAndTryAsyncReply(address : string, request : 'request) = 
+     member x.PostAndTryAsyncReply<'request, 'response>(address : string, request : 'request) : Async<'response option> = 
           async {
               try
                   let requestProps = new BasicProperties()
                   let client = client address
-                  let result = client.Call(requestProps, serialiser.Serialise request)
+                  let result = client.Call(requestProps, writer (box request))
                   return 
                       if result.BasicProperties.CorrelationId = requestProps.CorrelationId
-                      then result.Body |> serialiser.Deserialise |> Some
+                      then result.Body |> reader |> unbox<'response> |> Some
                       else None
               with e ->
                   error.Trigger(e)
@@ -56,10 +56,10 @@ type RpcClient(serverId : string, ?serialiser, ?timeout) =
               try
                   let requestProps = new BasicProperties()
                   let client = client address
-                  let result = client.Call(requestProps, serialiser.Serialise request)
+                  let result = client.Call(requestProps, writer request)
                   return 
                       if result.BasicProperties.CorrelationId = requestProps.CorrelationId
-                      then Choice1Of2(result.Body |> serialiser.Deserialise)
+                      then Choice1Of2(result.Body |> reader |> unbox<_>)
                       else Choice2Of2(Exception("An unexpected correlation id was received"))
               with e ->
                   error.Trigger(e)
@@ -74,23 +74,24 @@ type RpcClient(serverId : string, ?serialiser, ?timeout) =
       member x.Post(address, request : 'request) =
           let requestProps = new BasicProperties()
           let client = client address
-          client.Cast(requestProps, serialiser.Serialise request)
+          client.Cast(requestProps, writer request)
 
-type RpcServer<'request, 'response>(serverId : string, onRequest : 'request -> 'response, ?serialiser) = 
-      inherit SimpleRpcServer(createSubscription (Location.For<'request>(exchangeType = "direct", queue = serverId)) (createModel()))
+type RpcServer<'request, 'response>(serverId : string, onRequest : 'request -> 'response, ?writer, ?reader) = 
+      inherit SimpleRpcServer(createSubscription (Location<'request>.For(exchangeType = "direct", queue = serverId)) (createModel()))
 
-      let serialiser : ISerialiser<byte[]> = defaultArg serialiser Json.ByteSerialiser
+      let reader = defaultArg reader Json.ofByteArray
+      let writer = defaultArg writer Json.toByteArray
       let error = new Event<exn>()
 
       override x.HandleCall(isRedelivered, requestProperties, body, replyProperties) =
               replyProperties <- requestProperties
               replyProperties.MessageId <- Guid.NewGuid().ToString()
-              serialiser.Deserialise body
+              reader body
               |> onRequest
-              |> serialiser.Serialise
+              |> writer
 
       override x.HandleCast(isRedelivered, requestProperties, body) =
-              serialiser.Deserialise body
+              reader body
               |> onRequest
               |> ignore
       

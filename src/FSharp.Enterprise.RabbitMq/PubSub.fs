@@ -13,19 +13,19 @@ open Core
 
 module PubSub =
     
-    let tryGetAsync (loc : Location) = 
+    let tryGetAsync (loc : Location<_>) = 
         async {
             use model = createModel()
             let msg = model.BasicGet(defaultArg loc.Queue "", true)
             return 
                 match msg with
                 | null -> None
-                | a -> Some(loc.Serialiser.Deserialise a.Body)
+                | a -> Some(loc.Reader a.Body)
         }
     
     let tryGet loc = tryGetAsync loc |> Async.RunSynchronously
 
-    let subscribe (loc : Location) =
+    let subscribe (loc : Location<_>) =
         let cts = new CancellationTokenSource()
         let evnt = new Event<byte[]>()
         let observerThread =
@@ -40,11 +40,11 @@ module PubSub =
                         if subscription <> null then subscription.Close() 
                  }
         Async.Start(observerThread, cts.Token)
-        { Observer = evnt.Publish |> Event.map loc.Serialiser.Deserialise; Cancel = (fun () -> cts.Cancel()) }
+        { Observer = evnt.Publish |> Event.map loc.Reader; Cancel = (fun () -> cts.Cancel()) }
     
-    let publish (loc : Location) (payload : 'a) = 
+    let publish (loc : Location<_>) (payload : 'a) = 
         use model = createModel()
         declareExchange loc model
         let props = model.CreateBasicProperties()
-        let body = loc.Serialiser.Serialise payload
+        let body = loc.Writer payload
         model.BasicPublish(loc.Exchange, loc.RoutingKey, props, body)

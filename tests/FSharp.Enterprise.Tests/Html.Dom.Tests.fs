@@ -66,7 +66,7 @@ type ``Given parsed Html``() =
             use sr = new StringWriter(sb)
             read html
             |> parse
-            |> toXHtml sr
+            |> write sr
             sb.ToString()
         actual |> should equal html
 

@@ -5,6 +5,7 @@ module Html =
     open System
     open System.IO
     open System.Xml
+    open System.Reflection
 
     let private nullChar = Convert.ToChar(0x0)
 
@@ -272,7 +273,7 @@ module Html =
 
         let values elems = Seq.map (fun (e:HElement) -> e.Value) elems
 
-        let toXHtml (writer:TextWriter) (element:HElement) =
+        let write (writer:TextWriter) (element:HElement) =
             let createXmlWriter(baseWriter:TextWriter) =
                 let s = new System.Xml.XmlWriterSettings(Indent = false,
                                                          OmitXmlDeclaration = true, 
@@ -288,13 +289,96 @@ module Html =
                     writer.WriteStartElement(name)
                     for attr in attrs do
                         match attr with
-                        | HAttribute(key,value) -> writer.WriteAttributeString(key, value)
+                        | HAttribute(key,value) -> 
+                            if String.IsNullOrEmpty(value)
+                            then writer.WriteStartAttribute(key); writer.WriteEndAttribute()
+                            else writer.WriteAttributeString(key, value)
                     for elem in elems do 
                         writeElement writer elem
                     writer.WriteEndElement()
 
             use writer = createXmlWriter(writer)
             writeElement writer element
-                
-                 
 
+        let createForm (readonly:bool) (o: 'a) = 
+            let typ = typeof<'a>
+
+            let createInputAttributes (value:obj) =
+                let getValue (v:obj) = if value <> null then value.ToString() else String.Empty
+                match value with
+                | :? bool as b ->
+                    [
+                        yield HAttribute("type", "checkbox")
+                        if b then yield HAttribute("checked", String.Empty)
+                    ]
+                | :? decimal | :? float | :? float32
+                | :? int16 | :? int32 | :? int64 
+                | :? uint8 | :? uint16 | :? uint32 | :? uint64 ->
+                    [
+                       yield HAttribute("type", "number")
+                       yield HAttribute("value", getValue value)
+                    ]
+                | :? DateTime | :? DateTimeOffset -> 
+                    [
+                        yield HAttribute("type", "datetime")
+                        yield HAttribute("value", getValue value)
+                    ]
+                |  :? TimeSpan ->
+                    [
+                        yield HAttribute("type", "time")
+                        yield HAttribute("value", getValue value)
+                    ]
+                | _ ->
+                    [
+                        yield HAttribute("type", "text")
+                        yield HAttribute("value", getValue value)
+                    ]
+            
+            let (|Primitive|_|) (t:PropertyInfo) =
+                 if t.PropertyType.IsPrimitive
+                 then Some(t)
+                 else
+                    match t.PropertyType with
+                    | a when a = typeof<System.String> -> Some t
+                    | a when a = typeof<System.Uri> -> Some t
+                    | a when a = typeof<System.TimeSpan> ->  Some t
+                    | a when a = typeof<System.DateTime> -> Some t
+                    | _ -> None
+            
+
+            let rec writeProperty (instance:obj) (prop:PropertyInfo) =
+                let createInput (value:obj) =
+                    HElement("input", [
+                                        yield! createInputAttributes value
+                                        if readonly then yield HAttribute("readonly", String.Empty)
+                                      ], [])
+                
+                HElement("div",[],
+                            [
+                                let value = prop.GetValue(instance, null)
+                                match prop with
+                                | Primitive _ -> 
+                                    yield HElement("label", [HAttribute("for", prop.Name)],[HContent(prop.Name)])
+                                    yield createInput value
+                                | _ ->
+                                    let typ = value.GetType()
+                                    yield HElement("fieldset", [], 
+                                                    [
+                                                       yield HElement("legend", [], [HContent(typ.Name)])
+                                                       for prop' in typ.GetProperties() do
+                                                         yield writeProperty value prop'
+                                                    ])
+                             ])
+            
+            HElement("form", [],
+                     [HElement("fieldset", [],
+                                    [
+                                        yield HElement("legend", [], [HContent(typ.Name)])
+                                        for prop' in typ.GetProperties() do
+                                          yield writeProperty o prop'
+                                        yield HElement("div", [], [
+                                                         yield HElement("button", [HAttribute("type", "submit")], [HContent("Submit")])
+                                                         yield HElement("button", [HAttribute("type", "reset")], [HContent("Clear")])
+                                                       ])
+                                    ]
+                                )])
