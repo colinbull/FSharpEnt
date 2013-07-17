@@ -3,8 +3,6 @@
 module Geometry =
 
     open System
-    open FSharp.Enterprise
-    open FSharp.Enterprise.DateTimeOffset
 
     let inline checkNonNull argName arg = 
         match box arg with 
@@ -74,10 +72,13 @@ module Geometry =
         let map f (interval:T<_>) : T<_> = 
             make <| f (left interval, right interval) 
 
+        let merge i1 i2 =
+            make(min (left i1) (left i2), max (right i1) (right i2))
+
         /// Represents an interval between two options of float.
         module Value =
 
-            open FSharp.Enterprise.OptionOperators
+            open OptionOperators
 
             let rightUnboundedValue = Double.PositiveInfinity
 
@@ -225,6 +226,16 @@ module Geometry =
             let incr (span:TimeSpan) (interval:T) : T = 
                 interval |> map (fun (s,e) -> s.Add(span), e.Add(span)) 
 
+            /// Returns an interval with the left floored to a halfhour value and right ceiled to a halfhour value.
+            let toHalfhour (interval:T) =
+                make(left interval |> DateTimeOffset.floorHalfhour, right interval |> DateTimeOffset.ceilHalfhour)
+
+            let toHalfhourIntervals interval = 
+                interval 
+                |> getHalfhourTimes IntervalType.T.Closed
+                |> Seq.pairwise
+                |> Seq.map make
+
     /// Represents a value at a point in time. 
     module TimePoint =
 
@@ -273,10 +284,11 @@ module Geometry =
         open FSharpx
         open OptionOperators
    
-        type Any<'u> = { Start:TimePoint.T<'u>; End:TimePoint.T<'u> }
-   
-        type Float<[<Measure>]'u> = Any<float<'u>>
-
+        type T<'u> = { 
+            Start:TimePoint.T<'u>
+            End:TimePoint.T<'u> 
+        }
+  
         let make (p1,p2) = { Start = p1; End = p2 }
 
         let empty interval = 
@@ -289,60 +301,62 @@ module Geometry =
                 TimePoint.make(Interval.left interval, value), 
                 TimePoint.make(Interval.right interval, value))
 
-        let startPoint lineSegment = 
-            lineSegment.Start
+        let startPoint segment = 
+            segment.Start
    
-        let endPoint lineSegment = 
-            lineSegment.End         
+        let endPoint segment = 
+            segment.End         
    
-        let startTime lineSegment = 
-            (startPoint >> TimePoint.time) lineSegment
+        let startTime segment = 
+            (startPoint >> TimePoint.time) segment
    
-        let startValue lineSegment = 
-            (startPoint >> TimePoint.value) lineSegment
+        let startValue segment = 
+            (startPoint >> TimePoint.value) segment
    
-        let endTime lineSegment = 
-            (endPoint >> TimePoint.time) lineSegment
+        let endTime segment = 
+            (endPoint >> TimePoint.time) segment
    
-        let endValue lineSegment = 
-            (endPoint >> TimePoint.value) lineSegment
+        let endValue segment = 
+            (endPoint >> TimePoint.value) segment
    
-        let range lineSegment = 
-            Interval.make(startTime lineSegment,endTime lineSegment)
+        let range segment = 
+            Interval.make(startTime segment,endTime segment)
    
-        let domain lineSegment = 
-            Interval.make(startValue lineSegment,endValue lineSegment)
+        let domain segment = 
+            Interval.make(startValue segment,endValue segment)
    
-        let isTimeInRange intervalType time lineSegment =
-            range lineSegment
+        let isTimeInRange intervalType time segment =
+            range segment
             |> Interval.Time.isIn intervalType time
    
-        let isValueInDomain intervalType value lineSegment = 
-            Interval.Value.isIn intervalType (domain lineSegment) value
+        let isValueInDomain intervalType value segment = 
+            Interval.Value.isIn intervalType (domain segment) value
 
-        let isVanishinglySmall lineSegment = 
-            (endTime lineSegment) = (startTime lineSegment)
+        let isVanishinglySmall segment = 
+            (endTime segment) = (startTime segment)
             
-        let deltaTime lineSegment = (range >> Interval.Time.delta) lineSegment
-           
-        let inline map (f: TimePoint.T<'v> * TimePoint.T<'v> -> TimePoint.T<'u> * TimePoint.T<'u>) (lineSegment:Any<'v>) =
-            checkNonNull "lineSegment" lineSegment
-            f (startPoint lineSegment, endPoint lineSegment) |> make
+        let deltaTime segment = (range >> Interval.Time.delta) segment
 
-        let inline mapValue (f) (lineSegment:Any<'v>) =
-            checkNonNull "lineSegment" lineSegment
+        let duration timeUnitF segment = (range >> Interval.Time.delta >> timeUnitF) segment
+               
+        let inline map (f: TimePoint.T<'v> * TimePoint.T<'v> -> TimePoint.T<'u> * TimePoint.T<'u>) (segment:T<'v>) =
+            checkNonNull "segment" segment
+            f (startPoint segment, endPoint segment) |> make
+
+        let inline mapValue (f) (segment:T<'v>) =
+            checkNonNull "segment" segment
             make(
-                lineSegment |> startPoint |> TimePoint.mapValue f,
-                lineSegment |> endPoint |> TimePoint.mapValue f)
+                segment |> startPoint |> TimePoint.mapValue f,
+                segment |> endPoint |> TimePoint.mapValue f)
 
-        let fold<'v,'State> (f : 'State -> TimePoint.T<'v> * TimePoint.T<'v> -> 'State) (acc: 'State) (lineSegment:Any<'v>) =
-            checkNonNull "lineSegment" lineSegment
+        let fold<'v,'State> (f : 'State -> TimePoint.T<'v> * TimePoint.T<'v> -> 'State) (acc: 'State) (segment:T<'v>) =
+            checkNonNull "segment" segment
             let f = OptimizedClosures.FSharpFunc<_,_,_>.Adapt(f)
             let mutable state = acc 
-            state <- f.Invoke(state,(startPoint lineSegment, endPoint lineSegment))
+            state <- f.Invoke(state,(startPoint segment, endPoint segment))
             state
 
-        let interpolate<[<Measure>]'u> (time:DateTimeOffset) (s:Float<'u>) : float<'u> option=
+        let interpolate<[<Measure>]'u> (time:DateTimeOffset) (s:T<float<'u>>) : float<'u> option=
             match s.Start.Value, s.End.Value with
             | Some y0, Some y1 ->
                 let startX = float s.Start.Time.UtcTicks
@@ -352,7 +366,7 @@ module Geometry =
                 Some y
             | _ -> None 
 
-        let intersection<[<Measure>]'u> (s1:Float<'u>) (s2:Float<'u>) : TimePoint.T<float<'u>> option=
+        let intersection<[<Measure>]'u> (s1:T<float<'u>>) (s2:T<float<'u>>) : TimePoint.T<float<'u>> option=
             match s1.Start.Value, s1.End.Value, s2.Start.Value, s2.End.Value with
             | Some y0, Some y1, Some y2, Some y3 ->
                 let x0 = float s1.Start.Time.UtcTicks
@@ -366,39 +380,97 @@ module Geometry =
                     Some(TimePoint.make(time, Some value)))
             | _ -> None
 
-        let (|OverlapStart|OverlapEnd|Overlap|Internal|External|) (interval,lineSegment) =
+        let (|OverlapStart|OverlapEnd|Overlap|Internal|External|) (interval,segment) =
              let iStart, iEnd = Interval.left interval, Interval.right interval
-             let segStart, segEnd = startTime lineSegment, endTime lineSegment
+             let segStart, segEnd = startTime segment, endTime segment
              if segEnd <= iStart || segStart >= iEnd
-             then External lineSegment
+             then External segment
              elif segStart >= iStart && segEnd <= iEnd
-             then Internal lineSegment
+             then Internal segment
              elif segStart < iStart && segEnd <= iEnd
-             then OverlapStart (iStart,lineSegment)
+             then OverlapStart (iStart,segment)
              elif segStart >= iStart && segEnd > iEnd
-             then OverlapEnd (iEnd, lineSegment)
-             else Overlap (iStart, iEnd, lineSegment)
+             then OverlapEnd (iEnd, segment)
+             else Overlap (iStart, iEnd, segment)
+
+        /// Returns true if both the start and end value of the segment is zero.    
+        let inline isZero segment =
+            startValue segment ?<= LanguagePrimitives.GenericZero && endValue segment ?<= LanguagePrimitives.GenericZero
+
+        /// Returns true if either the start or end value of the segment is non zero.    
+        let inline isNonZero segment =
+            startValue segment ?> LanguagePrimitives.GenericZero || endValue segment ?> LanguagePrimitives.GenericZero
+
+        /// Returns true if either the start or end value of the segment is none.    
+        let isNone segment =
+            startValue segment = None || endValue segment = None
+
+        /// Returns true if either the start or end value of the segment is below the given value.
+        let isBelow value segment =
+            startValue segment ?< value || endValue segment ?< value
+
+        /// Returns true if either the start or end value of the segment is above the given value.
+        let isAbove value segment =
+            startValue segment ?> value || endValue segment ?> value
+
+        let volume timeUnitF (segment:T<float<'u>>) =
+            Option.maybe {
+                let! startValue = startValue segment
+                let! endValue = endValue segment
+                let duration = duration timeUnitF segment 
+                return (startValue + endValue) / 2.0 * duration
+            }
 
     /// Represents a line of line segments.
     module TimeLine =
         
         open FSharpx
 
-        type Any<'v> = 
-            TimeSegment.Any<'v> array
+        type LineType =
+            | InstantaneousSegments
+            | DiscreteSegments
+            | ContinuousSegments
 
-        type Float<[<Measure>]'u> = 
-            Any<float<'u>>
+        type T<'v> = {
+            Type : LineType
+            Segments : TimeSegment.T<'v> array
+        }
 
-        let empty : Any<'v> =
-            [||] 
-    
-        let segmentCount (line:Any<'v>) =
-            line.Length
+        let inline checkLineType argName ``type`` line = 
+            if line.Type <> ``type`` then
+                let message = sprintf "invalid line type: expected %A but was %A" ``type`` line.Type
+                invalidArg argName message
+                                
+        let make ``type`` points =
+            let segments =
+                match ``type`` with
+                | InstantaneousSegments ->
+                    points 
+                    |> Seq.map (fun point -> TimeSegment.make(point,point)) 
+                    |> Seq.toArray
+                | DiscreteSegments ->
+                    Seq.pairwise points
+                    |> Seq.map (fun (startPoint,endPoint) -> TimeSegment.make(startPoint,TimePoint.make (TimePoint.time endPoint, TimePoint.value startPoint)))
+                    |> Seq.toArray
+                | ContinuousSegments -> 
+                    Seq.pairwise points
+                    |> Seq.map TimeSegment.make 
+                    |> Seq.toArray
+            { Type = ``type``; Segments = segments }       
+
+        let makeInstantaneous points = make LineType.InstantaneousSegments points
+        let makeDiscrete points = make LineType.DiscreteSegments points
+        let makeContinuous points = make LineType.ContinuousSegments points
+
+        let empty ``type`` : T<'v> =
+            { Type = ``type``; Segments = [||] }
+
+        let segmentCount (line:T<'v>) =
+            line.Segments.Length
 
         let startSegment line =
             if segmentCount line > 0 
-            then Some line.[0]
+            then Some line.Segments.[0]
             else None
             
         let startPoint line =
@@ -406,7 +478,7 @@ module Geometry =
 
         let endSegment line =
             if segmentCount line > 0 
-            then Some line.[(segmentCount line) - 1]
+            then Some line.Segments.[(segmentCount line) - 1]
             else None
             
         let endPoint line =
@@ -424,55 +496,39 @@ module Geometry =
         let endValue line = 
             line |> endPoint |> Option.getOrElseWith None TimePoint.value
 
-        let ofInterval interval =
-            [| interval |> TimeSegment.empty |] 
+        let ofInterval lineType interval  =
+            { Type = lineType; Segments = [| TimeSegment.empty interval |] }
 
         let toInterval line =
             if segmentCount line > 0
             then Some (Interval.make((line |> startPoint |> Option.get).Time, (line |> endPoint |> Option.get).Time))
             else None
-        
-        let ofLineSegment lineSegment =
-            [| lineSegment |]
 
-        let ofLineSegments lineSegments : Any<_> = 
-            lineSegments |> Seq.toArray
+        let inline map (f: TimeSegment.T<'v> -> TimeSegment.T<'u>) (line:T<'v>) =
+            let segments = Array.map f line.Segments 
+            { Type = line.Type; Segments = segments }
 
-        let inline map (f: TimeSegment.Any<'v> -> TimeSegment.Any<'u>) (line:Any<'v>) =
+        let inline mapValue f (line:T<'v>) : T<'w> =
+            let segments = Array.map (TimeSegment.mapValue f) line.Segments 
+            { Type = line.Type; Segments = segments }
+
+        let fold<'v,'State> f (acc:'State) (line:T<'v>) =
+            Array.fold f acc line.Segments 
+
+        let exists (f: TimeSegment.T<'v> -> bool) (line:T<'v>) =
+            Array.exists f line.Segments
+
+        let forall (f: TimeSegment.T<'v> -> bool) (line:T<'v>) =
+            Array.forall f line.Segments
+
+        let unzip4 (line:T<_>) = 
             checkNonNull "line" line
-            match toInterval line with
-            | Some interval ->
-                let res = Array.zeroCreate line.Length
-                for i in [0 .. line.Length - 1] do 
-                    res.[i] <- f line.[i]
-                res
-            | None ->
-                [||]
-
-        let inline mapValue (f) (line:Any<'v>) : Any<'w> =
-            checkNonNull "line" line
-            match toInterval line with
-            | Some interval ->
-                line |> Array.map (TimeSegment.mapValue f)
-            | None ->
-                [||]
-
-        let fold<'v,'State> (f : 'State -> TimeSegment.Any<'v> -> 'State) (acc: 'State) (line:Any<'v>) =
-            checkNonNull "line" line
-            let f = OptimizedClosures.FSharpFunc<_,_,_>.Adapt(f)
-            let mutable state = acc 
-            for segment in line do 
-                state <- f.Invoke(state,segment)
-            state
-
-        let unzip4 (line:Any<_>) = 
-            checkNonNull "line" line
-            let res1 = Array.zeroCreate line.Length
-            let res2 = Array.zeroCreate line.Length
-            let res3 = Array.zeroCreate line.Length
-            let res4 = Array.zeroCreate line.Length
-            for i in [0 .. line.Length - 1] do
-                let segment = line.[i]
+            let res1 = Array.zeroCreate line.Segments.Length
+            let res2 = Array.zeroCreate line.Segments.Length
+            let res3 = Array.zeroCreate line.Segments.Length
+            let res4 = Array.zeroCreate line.Segments.Length
+            for i in [0 .. line.Segments.Length - 1] do
+                let segment = line.Segments.[i]
                 let unpack = function
                     | Some(a,b,c,d) ->  a, b, c, d
                     | _ -> None,None,None,None                
@@ -482,17 +538,20 @@ module Geometry =
                 res2.[i] <- TimeSegment.make (TimePoint.make (segment.Start.Time,sy2), TimePoint.make (segment.End.Time,ey2))
                 res3.[i] <- TimeSegment.make (TimePoint.make (segment.Start.Time,sy3), TimePoint.make (segment.End.Time,ey3))
                 res4.[i] <- TimeSegment.make (TimePoint.make (segment.Start.Time,sy4), TimePoint.make (segment.End.Time,ey4))
-            res1,res2,res3,res4
+            { Type = line.Type; Segments = res1 },
+            { Type = line.Type; Segments = res2 },
+            { Type = line.Type; Segments = res3 },
+            { Type = line.Type; Segments = res4 }
 
-        let unzip5 (line:Any<_>) = 
+        let unzip5 (line:T<_>) = 
             checkNonNull "line" line
-            let res1 = Array.zeroCreate line.Length
-            let res2 = Array.zeroCreate line.Length
-            let res3 = Array.zeroCreate line.Length
-            let res4 = Array.zeroCreate line.Length
-            let res5 = Array.zeroCreate line.Length
-            for i in [0 .. line.Length - 1] do
-                let segment = line.[i]
+            let res1 = Array.zeroCreate line.Segments.Length
+            let res2 = Array.zeroCreate line.Segments.Length
+            let res3 = Array.zeroCreate line.Segments.Length
+            let res4 = Array.zeroCreate line.Segments.Length
+            let res5 = Array.zeroCreate line.Segments.Length
+            for i in [0 .. line.Segments.Length - 1] do
+                let segment = line.Segments.[i]
                 let unpack = function
                     | Some(a,b,c,d,e) ->  a, b, c, d, e
                     | _ -> None,None,None,None,None                
@@ -503,16 +562,20 @@ module Geometry =
                 res3.[i] <- TimeSegment.make (TimePoint.make (segment.Start.Time,sy3), TimePoint.make (segment.End.Time,ey3))
                 res4.[i] <- TimeSegment.make (TimePoint.make (segment.Start.Time,sy4), TimePoint.make (segment.End.Time,ey4))
                 res5.[i] <- TimeSegment.make (TimePoint.make (segment.Start.Time,sy5), TimePoint.make (segment.End.Time,ey5))
-            res1,res2,res3,res4,res5
+            { Type = line.Type; Segments = res1 },
+            { Type = line.Type; Segments = res2 },
+            { Type = line.Type; Segments = res3 },
+            { Type = line.Type; Segments = res4 },
+            { Type = line.Type; Segments = res5 }
 
         let endTimes line =
             line 
-            |> fold (fun s lineSegment -> TimeSegment.endTime lineSegment :: s) []
+            |> fold (fun s segment -> TimeSegment.endTime segment :: s) []
             |> List.rev
 
         let startTimes line =
             line 
-            |> fold (fun s lineSegment -> TimeSegment.startTime lineSegment :: s) []
+            |> fold (fun s segment -> TimeSegment.startTime segment :: s) []
             |> List.rev
 
         let allDistinctTimes line =
@@ -522,112 +585,108 @@ module Geometry =
             |> Option.getOrElseWith endTimes (fun startPoint -> TimePoint.time startPoint :: endTimes) 
 
         let tryFindSegment intervalType time line =
-            Array.tryFind (TimeSegment.isTimeInRange intervalType time) line
+            Array.tryFind (TimeSegment.isTimeInRange intervalType time) line.Segments
 
         let intersections line1 line2 =
             [|
-                for line1Segment in line1 do
-                    for line2Segment in line2 do
+                for line1Segment in line1.Segments do
+                    for line2Segment in line2.Segments do
                         match TimeSegment.intersection line1Segment line2Segment with
                         | Some point -> yield point
                         | None -> ()
             |]
 
+        let volume timeUnitF line =
+            Array.choose (TimeSegment.volume timeUnitF) line.Segments |> Array.sum
+
         module Instantaneous =
             
             open FSharpx.Option
 
-            let make (points:TimePoint.T<'a> seq) =
-                points
-                |> Seq.map (fun startPoint ->
-                    TimeSegment.make(startPoint,startPoint))
-                |> Seq.toArray
-
-            let tryFindValue time (line:Any<'a>) =
+            let tryFindValue time (line:T<'v>) =
+                checkLineType "line" LineType.InstantaneousSegments line
                 tryFindSegment IntervalType.T.Closed time line
                 |> Option.map TimeSegment.startValue
                 |> Option.concat
 
             let toSeq timeSpan line =
+                checkLineType "line" LineType.InstantaneousSegments line
                 toInterval line
                 |> Option.getOrElseWith Seq.empty (fun interval ->
                     Interval.Time.toSeq IntervalType.T.Closed timeSpan interval
                     |> Seq.map (fun time -> tryFindValue time line))
 
             let slice interval line = 
-                line
-                |> Array.filter (fun segment -> Interval.Time.isIn IntervalType.T.Closed (TimeSegment.startTime segment) interval)
-
+                checkLineType "line" LineType.InstantaneousSegments line                
+                let segments = Array.filter (fun segment -> Interval.Time.isIn IntervalType.T.Closed (TimeSegment.startTime segment) interval) line.Segments
+                { Type = line.Type; Segments = segments }
 
         module Discrete =
             
-            let make (points:TimePoint.T<_> seq) =
-                points
-                |> Seq.pairwise
-                |> Seq.map (fun (startPoint,endPoint) ->
-                    TimeSegment.make(startPoint,TimePoint.make (TimePoint.time endPoint, TimePoint.value startPoint)))
-                |> Seq.toArray
-
-            let tryFindValue segmentIntervalType time (line:Any<'a>) =
+            let tryFindValue segmentIntervalType time (line:T<'v>) =
+                checkLineType "line" LineType.DiscreteSegments line
                 tryFindSegment segmentIntervalType time line
                 |> Option.map TimeSegment.startValue
                 |> Option.concat
 
-            let toSeq segmentIntervalType timeSpan (line:Any<'a>) =
+            let toSeq segmentIntervalType timeSpan (line:T<'v>) =
+                checkLineType "line" LineType.DiscreteSegments line
                 toInterval line
                 |> Option.getOrElseWith Seq.empty (fun interval ->
                     Interval.Time.toSeq IntervalType.T.Closed timeSpan interval
                     |> Seq.map (fun time -> tryFindValue segmentIntervalType time line))
 
             let slice interval line = 
-                line
-                |> Array.choose (fun seg -> 
-                                   match (interval, seg) with
-                                   | TimeSegment.Overlap (iStart, iEnd, seg) ->
-                                        Some <| TimeSegment.makeFlat(interval,seg.Start.Value)
-                                   | TimeSegment.Internal seg -> 
-                                        Some(seg)
-                                   | TimeSegment.External seg -> 
-                                        None
-                                   | TimeSegment.OverlapStart (dt,seg) ->
-                                        Some <| TimeSegment.map (fun (s,e) -> TimePoint.mapTime (fun _ -> dt) s, e) seg
-                                   | TimeSegment.OverlapEnd (dt,seg) ->
-                                        Some <| TimeSegment.map (fun (s,e) -> s, TimePoint.map (fun (_,_) -> dt,s.Value) e) seg
-                                )
+                checkLineType "line" LineType.DiscreteSegments line
+                let segments =
+                    line.Segments
+                    |> Array.choose (fun seg -> 
+                                       match (interval, seg) with
+                                       | TimeSegment.Overlap (iStart, iEnd, seg) ->
+                                            Some <| TimeSegment.makeFlat(interval,seg.Start.Value)
+                                       | TimeSegment.Internal seg -> 
+                                            Some(seg)
+                                       | TimeSegment.External seg -> 
+                                            None
+                                       | TimeSegment.OverlapStart (dt,seg) ->
+                                            Some <| TimeSegment.map (fun (s,e) -> TimePoint.mapTime (fun _ -> dt) s, e) seg
+                                       | TimeSegment.OverlapEnd (dt,seg) ->
+                                            Some <| TimeSegment.map (fun (s,e) -> s, TimePoint.map (fun (_,_) -> dt,s.Value) e) seg
+                                    )
+                { Type = line.Type; Segments = segments }
 
         module Continuous =
 
-            let make (points:seq<TimePoint.T<_>>) =
-                points 
-                |> Seq.pairwise 
-                |> Seq.map TimeSegment.make 
-                |> Seq.toArray
-
-            let tryFindValue segmentIntervalType time (line:Float<'a>) =
+            let tryFindValue segmentIntervalType time (line:T<float<'u>>) =                
+                checkLineType "line" LineType.ContinuousSegments line
                 tryFindSegment segmentIntervalType time line
                 |> Option.map (TimeSegment.interpolate time)
                 |> Option.concat
 
-            let toSeq segmentIntervalType timeSpan (line:Float<'a>) =
+            let toSeq segmentIntervalType timeSpan (line:T<float<'u>>) =
+                checkLineType "line" LineType.ContinuousSegments line
                 toInterval line
                 |> Option.getOrElseWith Seq.empty (fun interval ->
                     Interval.Time.toSeq IntervalType.T.Closed timeSpan interval
                     |> Seq.map (fun time -> tryFindValue segmentIntervalType time line))
 
             let slice interval line = 
-                line
-                |> Array.choose (fun seg -> 
-                                   match (interval, seg) with
-                                   | TimeSegment.Overlap (iStart, iEnd, seg) ->
-                                        Some <| TimeSegment.map (fun (s,e) -> 
-                                                    TimePoint.map (fun _ -> iStart, TimeSegment.interpolate iStart seg) s, 
-                                                    TimePoint.map (fun _ -> iEnd, TimeSegment.interpolate iEnd seg) e) seg
-                                   | TimeSegment.Internal seg -> 
-                                        Some(seg)
-                                   | TimeSegment.External seg -> 
-                                        None
-                                   | TimeSegment.OverlapStart (dt,seg) ->
-                                        Some <| TimeSegment.map (fun (s,e) -> TimePoint.map (fun _ -> dt, TimeSegment.interpolate dt seg) s, e) seg
-                                   | TimeSegment.OverlapEnd (dt,seg) ->
-                                        Some <| TimeSegment.map (fun (s,e) -> s, TimePoint.map (fun _ -> dt, TimeSegment.interpolate dt seg) e) seg
-                                )
+                checkLineType "line" LineType.ContinuousSegments line
+                let segments =
+                    line.Segments
+                    |> Array.choose (fun seg -> 
+                                       match (interval, seg) with
+                                       | TimeSegment.Overlap (iStart, iEnd, seg) ->
+                                            Some <| TimeSegment.map (fun (s,e) -> 
+                                                        TimePoint.map (fun _ -> iStart, TimeSegment.interpolate iStart seg) s, 
+                                                        TimePoint.map (fun _ -> iEnd, TimeSegment.interpolate iEnd seg) e) seg
+                                       | TimeSegment.Internal seg -> 
+                                            Some(seg)
+                                       | TimeSegment.External seg -> 
+                                            None
+                                       | TimeSegment.OverlapStart (dt,seg) ->
+                                            Some <| TimeSegment.map (fun (s,e) -> TimePoint.map (fun _ -> dt, TimeSegment.interpolate dt seg) s, e) seg
+                                       | TimeSegment.OverlapEnd (dt,seg) ->
+                                            Some <| TimeSegment.map (fun (s,e) -> s, TimePoint.map (fun _ -> dt, TimeSegment.interpolate dt seg) e) seg
+                                    )
+                { Type = line.Type; Segments = segments }
