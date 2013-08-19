@@ -20,6 +20,43 @@ type ``Given a DateTimeOffset`` () =
       s, new ResizeArray<_>(Seq.init c (fun i -> Nullable<_>(i |> float32)))
 
     [<Test>]
+    member x.``I can round down to the nearest minute`` () =
+        let actual = date.AddSeconds(14.) |> DateTimeOffset.roundMinute
+        let expected = date
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can round up to the nearest minute at thirty seconds`` () =
+        let actual = date.AddSeconds(30.) |> DateTimeOffset.roundMinute
+        let expected = date
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can round up to the nearest minute`` () =
+        let actual = date.AddSeconds(33.) |> DateTimeOffset.roundMinute
+        let expected = date.AddMinutes(1.)
+        actual |> should equal expected
+    
+    [<Test>]
+    member x.``I can round down to the nearest half hour`` () =
+        let actual = date.AddMinutes(14.) |> DateTimeOffset.roundHalfhour
+        let expected = date
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can round up to the nearest half hour at fifteen minutes`` () =
+        let actual = date.AddMinutes(15.) |> DateTimeOffset.roundHalfhour
+        let expected = date
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can round up to the nearest half hour`` () =
+        let actual = date.AddMinutes(23.) |> DateTimeOffset.roundHalfhour
+        let expected = date.AddMinutes(30.)
+        actual |> should equal expected
+
+
+    [<Test>]
     member x.``I can get the halfhour ceiling with 0 seconds past the hour`` () =
         let actual = date |> DateTimeOffset.ceilHalfhour
         let expected = date

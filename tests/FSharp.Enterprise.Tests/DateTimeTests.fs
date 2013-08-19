@@ -17,6 +17,42 @@ type ``Given a DateTime``() =
       let e = s.AddMonths(1)
       let c = e.Subtract(s).TotalMinutes / granularity.TotalMinutes |> int
       s, new ResizeArray<_>(Seq.init c (fun i -> Nullable<_>(i |> float32)))
+
+    [<Test>]
+    member x.``I can round down to the nearest minute`` () =
+        let actual = date.AddSeconds(14.) |> DateTime.roundMinute
+        let expected = date
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can round up to the nearest minute at thirty seconds`` () =
+        let actual = date.AddSeconds(30.) |> DateTime.roundMinute
+        let expected = date
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can round up to the nearest minute`` () =
+        let actual = date.AddSeconds(33.) |> DateTime.roundMinute
+        let expected = date.AddMinutes(1.)
+        actual |> should equal expected
+    
+    [<Test>]
+    member x.``I can round down to the nearest half hour`` () =
+        let actual = date.AddMinutes(14.) |> DateTime.roundHalfhour
+        let expected = date
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can round up to the nearest half hour at fifteen minutes`` () =
+        let actual = date.AddMinutes(15.) |> DateTime.roundHalfhour
+        let expected = date
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can round up to the nearest half hour`` () =
+        let actual = date.AddMinutes(23.) |> DateTime.roundHalfhour
+        let expected = date.AddMinutes(30.)
+        actual |> should equal expected
      
     [<Test>]
     member t.``I should be able to calculate the unix ticks``() = 
