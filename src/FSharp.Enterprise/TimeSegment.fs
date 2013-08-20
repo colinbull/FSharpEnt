@@ -80,6 +80,9 @@ module TimeSegment =
     let isValueInDomain intervalType value s = 
         Interval.Value.isIn intervalType (domain s) value
 
+    let isFlat s =
+        startValue s = endValue s
+
     let deltaTime s = 
         Interval.Time.delta (range s) 
 
@@ -114,12 +117,15 @@ module TimeSegment =
 
     let interpolateTime value (s:T<float<'u>>) = 
         if isValueInDomain IntervalType.T.Closed (Some value) s then
-            let startX = float (startTime s).UtcTicks
-            let endX = float (endTime s).UtcTicks
-            let y0 = Option.get (startValue s)
-            let y1 = Option.get (endValue s) 
-            let x = Math.Interpolation.linear value y0 startX y1 endX
-            Some (DateTimeOffset(int64 x, TimeSpan.Zero))
+            if isFlat s then
+                Some (startTime s)
+            else
+                let startX = float (startTime s).UtcTicks
+                let endX = float (endTime s).UtcTicks
+                let y0 = Option.get (startValue s)
+                let y1 = Option.get (endValue s) 
+                let x = Math.Interpolation.linear value y0 startX y1 endX
+                Some (DateTimeOffset(int64 x, TimeSpan.Zero))
         else
             None                     
 

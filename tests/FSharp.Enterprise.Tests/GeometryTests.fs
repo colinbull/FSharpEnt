@@ -721,6 +721,14 @@ type ``Given the TimeSegment module`` () =
         let intersection''' = TimeSegment.intersection lineSegment1''' lineSegment2'''
         intersection''' |> should equal None
 
+    [<Test>]
+    member x.``the interpolateTime on a flat line at the line value is correct`` () =
+        let startTime = DateTimeOffset(2013,5,6,0,0,0,TimeSpan.Zero)
+        let endTime = startTime.AddMinutes(30.0)
+        let segment = TimeSegment.makeContinuous(TimePoint.make(startTime, Some 100.0),TimePoint.make(endTime, Some 100.0))
+        let actual = TimeSegment.interpolateTime 100.0 segment
+        let expected = Some startTime
+        actual |> should equal expected
 
 type ``Given the TimeLine module`` () =
 
