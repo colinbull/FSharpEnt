@@ -175,9 +175,23 @@ module DateTime =
                 else
                     d.AddMinutes(30.0)
 
+        [<Extension>]
+        member x.Round(timeBoundary:TimeBoundary) =
+            match timeBoundary with
+            | Minute ->
+                if x.Second <= 30
+                then x.Floor(timeBoundary)
+                else x.Ceil(timeBoundary) 
+            | Halfhour ->
+                if (x.Minute % 30) <= 15
+                then x.Floor(timeBoundary)
+                else x.Ceil(timeBoundary) 
+    
+    let roundMinute (d:DateTime) = d.Round(TimeBoundary.Minute)
     let ceilMinute (d:DateTime) = d.Ceil(TimeBoundary.Minute)
     let floorMinute (d:DateTime) = d.Floor(TimeBoundary.Minute)
     
+    let roundHalfhour (d:DateTime) = d.Round(TimeBoundary.Halfhour)
     let ceilHalfhour (d:DateTime) = d.Ceil(TimeBoundary.Halfhour)
     let floorHalfhour (d:DateTime) = d.Floor(TimeBoundary.Halfhour)
 
@@ -323,9 +337,23 @@ module DateTimeOffset =
                 else
                     d.AddMinutes(30.0)
     
+        [<Extension>]
+        member x.Round(timeBoundary:TimeBoundary) =
+            match timeBoundary with
+            | Minute ->
+                if x.Second <= 30
+                then x.Floor(timeBoundary)
+                else x.Ceil(timeBoundary) 
+            | Halfhour ->
+                if (x.Minute % 30) <= 15
+                then x.Floor(timeBoundary)
+                else x.Ceil(timeBoundary) 
+    
+    let roundMinute (d:DateTimeOffset) = d.Round(TimeBoundary.Minute)
     let ceilMinute (d:DateTimeOffset) = d.Ceil(TimeBoundary.Minute)
     let floorMinute (d:DateTimeOffset) = d.Floor(TimeBoundary.Minute)
     
+    let roundHalfhour (d:DateTimeOffset) = d.Round(TimeBoundary.Halfhour)
     let ceilHalfhour (d:DateTimeOffset) = d.Ceil(TimeBoundary.Halfhour)
     let floorHalfhour (d:DateTimeOffset) = d.Floor(TimeBoundary.Halfhour)
 

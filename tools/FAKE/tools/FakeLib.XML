@@ -955,6 +955,88 @@
 <member name="T:Fake.DynamicsNav">
 
 </member>
+<member name="M:Fake.DynamicsNavFile.setVersionTags(System.Collections.Generic.IEnumerable{System.String},System.Boolean,System.Collections.Generic.IEnumerable{System.String},System.String,System.String,System.Boolean,System.DateTime,System.Collections.Generic.IEnumerable{System.String})">
+<summary>
+ Checks a Dynamics NAV object for missing required and invalid tags and raises this as errors.
+ It also changes the given tag, resets the modified flag and time stamp.
+</summary>
+</member>
+<member name="M:Fake.DynamicsNavFile.modifyNavisionFiles(System.Collections.Generic.IEnumerable{System.String},System.Boolean,System.Collections.Generic.IEnumerable{System.String},System.String,System.String,System.Boolean,System.DateTime,System.Collections.Generic.IEnumerable{System.String})">
+<summary>
+ Checks a Dynamics NAV object for missing required and invalid tags and raises this as errors.
+ It also changes the given tag, resets the modified flag and time stamp.
+</summary>
+</member>
+<member name="M:Fake.DynamicsNavFile.checkTagsInFile(System.Collections.Generic.IEnumerable{System.String},System.Boolean,System.Collections.Generic.IEnumerable{System.String},System.String)">
+<summary>
+ Checks a Dynamics NAV file for missing required and invalid tags and raises this as errors
+</summary>
+</member>
+<member name="M:Fake.DynamicsNavFile.checkTagsInObjectString(System.Collections.Generic.IEnumerable{System.String},System.Boolean,System.Collections.Generic.IEnumerable{System.String},System.String,System.String)">
+<summary>
+ Checks a Dynamics NAV object for missing required andinvalid tags and raises this as errors
+</summary>
+</member>
+<member name="M:Fake.DynamicsNavFile.getInvalidTags(System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String})">
+<summary>
+ Get all invalid tags from a Dynamics NAV version tag list
+</summary>
+</member>
+<member name="M:Fake.DynamicsNavFile.getMissingRequiredTags(System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.IEnumerable{System.String})">
+<summary>
+ Get all missing required tags from a Dynamics NAV version tag list
+</summary>
+</member>
+<member name="M:Fake.DynamicsNavFile.replaceVersionTag(System.String,System.String,System.String)">
+<summary>
+ Splits a version tag list from Dynamics NAV object into single tags
+</summary>
+</member>
+<member name="M:Fake.DynamicsNavFile.replaceVersionTagList(System.String,System.String)">
+<summary>
+ Replaces a version tag list from complete Dynamics NAV object with a new one
+</summary>
+</member>
+<member name="M:Fake.DynamicsNavFile.replaceInVersionTag(System.String,System.String,System.String)">
+<summary>
+ Replaces a version tag in a version tag list from Dynamics NAV object
+</summary>
+</member>
+<member name="M:Fake.DynamicsNavFile.splitVersionTags(System.String)">
+<summary>
+ Splits a version tag list from Dynamics NAV object into single tags
+</summary>
+</member>
+<member name="M:Fake.DynamicsNavFile.getVersionTagList(System.String)">
+<summary>
+ Returns the version tag list from Dynamics NAV object
+</summary>
+</member>
+<member name="M:Fake.DynamicsNavFile.removeModifiedFlag(System.String)">
+<summary>
+ Removes the modified flag from a Dynamics NAV object
+</summary>
+</member>
+<member name="M:Fake.DynamicsNavFile.replaceDateTimeInString(System.DateTime,System.String)">
+<summary>
+ Replaces the timestamp in a Dynamics NAV object
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:Fake.DynamicsNavFile">
+
+</member>
 <member name="">
 
 </member>
@@ -1489,6 +1571,14 @@
 <member name="T:Fake.FileSetHelper">
 
 </member>
+<member name="M:Fake.FileSystemHelper.isFile(System.String)">
+ <summary>Detects whether it the given path is a file</summary>
+ <user/>
+</member>
+<member name="M:Fake.FileSystemHelper.isDirectory(System.String)">
+ <summary>Detects whether it the given path is a directory</summary>
+ <user/>
+</member>
 <member name="M:Fake.FileSystemHelper.ensureDirectory(System.String)">
  <summary>Checks if the given directory exists. If not then this functions creates the directory.</summary>
  <user/>
@@ -1500,6 +1590,18 @@
 <member name="M:Fake.FileSystemHelper.directoryExists(System.String)">
  <summary>Checks if the directory exists on disk.</summary>
  <user/>
+</member>
+<member name="M:Fake.FileSystemHelper.isInFolder(System.IO.DirectoryInfo,System.IO.FileInfo)">
+ <summary>Checks if the file is in a subfolder of the dir.</summary>
+ <user />
+</member>
+<member name="M:Fake.FileSystemHelper.isSubfolderOf(System.IO.DirectoryInfo,System.IO.DirectoryInfo)">
+ <summary>Checks if dir1 is a subfolder of dir2. If dir1 equals dir2 the function returns also true.</summary>
+ <user />
+</member>
+<member name="M:Fake.FileSystemHelper.normalizeFileName(System.String)">
+ <summary>Normalizes a filename.</summary>
+ <user />
 </member>
 <member name="M:Fake.FileSystemHelper.allFilesExist(System.Collections.Generic.IEnumerable{System.String})">
  <summary>Checks if all given files exist</summary>
@@ -3443,6 +3545,182 @@
 <member name="T:Fake.NuGetHelper">
 
 </member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:Fake.OctoTools.OctoParams">
+<summary>
+ Complete Octo.exe CLI params
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:Fake.OctoTools.OctoCommand">
+<summary>
+ DU for selecting one command
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:Fake.OctoTools.DeleteReleaseOptions">
+<summary>
+ Options for deleting a range of releases in a project
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:Fake.OctoTools.DeployReleaseOptions">
+<summary>
+ Options for deploying a release to an environment
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:Fake.OctoTools.CreateReleaseOptions">
+<summary>
+ Options for creating a new release
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:Fake.OctoTools.OctoServerOptions">
+<summary>
+ Octo.exe server options
+</summary>
+</member>
+<member name="M:Fake.OctoTools.Octo(Microsoft.FSharp.Core.FSharpFunc{Fake.OctoTools.OctoParams,Fake.OctoTools.OctoParams})">
+<summary>
+ Calls the Octo.exe CLI.
+</summary>
+</member>
+<member name="M:Fake.OctoTools.commandLine(Fake.OctoTools.OctoCommand)">
+<summary>
+ Maps an command to string input for the octopus tools cli.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="P:Fake.OctoTools.octoParams">
+<summary>
+ Default parameters to call octo.exe.
+</summary>
+</member>
+<member name="P:Fake.OctoTools.deleteOptions">
+<summary>
+ Default options for &apos;DeleteReleases&apos;
+</summary>
+</member>
+<member name="P:Fake.OctoTools.deployOptions">
+<summary>
+ Default options for &apos;DeployRelease&apos;
+</summary>
+</member>
+<member name="P:Fake.OctoTools.releaseOptions">
+<summary>
+ Default options for &apos;CreateRelease&apos;
+</summary>
+</member>
+<member name="P:Fake.OctoTools.serverOptions">
+<summary>
+ Default server options.
+</summary>
+</member>
+<member name="T:Fake.OctoTools">
+
+</member>
 <member name="M:Fake.Option.toNullable``1(Microsoft.FSharp.Core.FSharpOption{``0})">
 <summary>
  Converts an F# option into a nullable object
@@ -3956,6 +4234,11 @@ returns the exit code
 <member name="T:Fake.SpecFlowHelper">
 
 </member>
+<member name="M:Fake.StringHelper.liftString(System.String)">
+<summary>
+ Lifts a string to an option
+</summary>
+</member>
 <member name="M:Fake.StringHelper.DecodeBase64Utf8String(System.String)">
 <summary>
  Decodes a Base64-encoded UTF-8-encoded string
@@ -4194,7 +4477,11 @@ returns the exit code
  <summary>Reads a file line by line</summary>
  <user/>
 </member>
-<member name="P:Fake.StringHelper.isNotNullOrEmpty">
+<member name="M:Fake.StringHelper.isNullOrWhiteSpace(System.String)">
+ <summary>Returns if the string is null or empty or completely whitespace</summary>
+ <user/>
+</member>
+<member name="M:Fake.StringHelper.isNotNullOrEmpty(System.String)">
  <summary>Returns if the string is not null or empty</summary>
  <user/>
 </member>
@@ -4949,6 +5236,12 @@ returns the exit code
 
 </member>
 <member name="T:Fake.VSSHelper">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
 
 </member>
 <member name="">
