@@ -88,6 +88,16 @@ module TimeSegment =
 
     let duration timeUnitF s = 
         deltaTime s |> timeUnitF
+
+    let apply op (s1:T<'a>) (s2:T<'b>) = 
+        match s1, s2 with
+        | Instantaneous p1, Instantaneous p2 when p1.Time = p2.Time -> 
+                makeInstantaneous <| TimePoint.make(p1.Time, op p1.Value p2.Value)
+        | Discrete (interval, v1), Discrete(interval2, v2) when interval = interval2 ->
+                makeDiscrete(interval, op v1 v2)
+        | Continuous (p1, p1'), Continuous (p2, p2') when p1.Time = p2.Time && p1'.Time = p2'.Time -> 
+                makeContinuous (TimePoint.make(p1.Time, op p1.Value p2.Value), TimePoint.make(p1'.Time, op p1'.Value p2'.Value))
+        | _ -> invalidArg "s2" "Time segments must be consistent with respect to time"
            
     let inline map (f: TimePoint.T<'v> * TimePoint.T<'v> -> TimePoint.T<'u> * TimePoint.T<'u>) (s:T<'v>) =
         let p1,p2 = f (startPoint s, endPoint s)
