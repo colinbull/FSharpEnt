@@ -36,7 +36,13 @@ module LookUp =
 
         let keys (s:Single<_,_>) =
             Map.toSeq s |> Seq.map fst
-             
+
+        let values (s:Single<_,_>) =
+            Map.toSeq s |> Seq.map snd
+            
+        let toSeq (s:Single<_,_>) = 
+            Map.toSeq s
+           
         let add key item (s:Single<_,_>) = s.Add(key, item)
                         
         let inline tryFindInterpolated x (m:Single<_,_>) =
@@ -68,6 +74,9 @@ module LookUp =
         let ofSeq s : Double<_,_,_> = Seq.map (fun (k,v) -> k, Map.ofSeq v) s |> Map.ofSeq
         
         let empty : Double<_,_,_> = Map.empty
+
+        let toSeq (s:Double<_,_,_>) = 
+            Map.toSeq s |> Seq.map (fun (k,v) -> k, v |> Map.toSeq)
 
         let add key key' item (s:Double<_,_,_>) =
             match s.TryFind(key) with
