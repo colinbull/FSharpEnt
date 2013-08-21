@@ -98,6 +98,11 @@ module TimeLine =
         let segments = Array.map f line.Segments
         { Type = line.Type; Segments = segments }   
 
+    let inline map2 (f: TimeSegment.T<'a> -> TimeSegment.T<'v> -> TimeSegment.T<'u>) (l1:T<'a>) (l2:T<'v>) =
+        if l1.Type <> l2.Type then (invalidArg "l2" "line types differ")
+        let segments = Array.map2 f l1.Segments l2.Segments
+        { Type = l1.Type; Segments = segments }   
+
     let inline mapValue f (line:T<'v>) : T<'w> =
         let segments = Array.map (TimeSegment.mapValue f) line.Segments 
         { Type = line.Type; Segments = segments }   
