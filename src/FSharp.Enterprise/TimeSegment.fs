@@ -42,7 +42,7 @@ module TimeSegment =
     let endPoint = function
         | Instantaneous p -> p
         | Discrete (interval,value) -> TimePoint.make(Interval.right interval,value) 
-        | Continuous (_,p) -> p    
+        | Continuous (_,p) -> p      
 
     let startTime = function
         | Instantaneous p -> p.Time

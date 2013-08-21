@@ -1154,6 +1154,22 @@ type ``Given a continuous TimeLine`` () =
         actual.Type |> should equal expected.Type 
         actual.Segments |> should equal expected.Segments
 
+    [<Test>]
+    member x.``I can convert a line into a sequence of points`` () =
+        let points = [Helper.d0, Some 0.0; Helper.d0.AddMinutes(30.0), Some 100.; Helper.d0.AddMinutes(60.0), Some 200.] |> List.map TimePoint.make |> List.toSeq     
+        let line = TimeLine.makeContinuous points
+        let actual = TimeLine.toPoints line
+        let expected = [Helper.d0, Some 0.0; Helper.d0.AddMinutes(30.0), Some 100.; Helper.d0.AddMinutes(60.0), Some 200.] |> List.map TimePoint.make |> List.toSeq
+        actual |> should equal expected 
+
+    [<Test>]
+    member x.``I can convert an empty line into a sequence of points`` () =
+        let line = TimeLine.emptyContinuous ()
+        let actual = TimeLine.toPoints line
+        let expected = [] |> List.toSeq
+        actual |> should equal expected
+
+
 type ``Given an instantaneous TimeLine`` () =
 
     [<Test>]
@@ -1271,6 +1287,21 @@ type ``Given an instantaneous TimeLine`` () =
         let actual = TimeLine.toSeq None IntervalType.T.Closed (TimeSpan.FromMinutes(1.0)) line
         let expected = Seq.empty
         actual |> should equal expected 
+
+    [<Test>]
+    member x.``I can convert a line into a sequence of points`` () =
+        let points = [Helper.d0, Some 0.0; Helper.d0.AddMinutes(30.0), Some 100.; Helper.d0.AddMinutes(60.0), Some 200.] |> List.map TimePoint.make |> List.toSeq     
+        let line = TimeLine.makeInstantaneous points
+        let actual = TimeLine.toPoints line
+        let expected = [Helper.d0, Some 0.0; Helper.d0.AddMinutes(30.0), Some 100.; Helper.d0.AddMinutes(60.0), Some 200.] |> List.map TimePoint.make |> List.toSeq
+        actual |> should equal expected 
+
+    [<Test>]
+    member x.``I can convert an empty line into a sequence of points`` () =
+        let line = TimeLine.emptyInstantaneous ()
+        let actual = TimeLine.toPoints line
+        let expected = [] |> List.toSeq
+        actual |> should equal expected
 
 
 type ``Given a Discrete TimeLine`` () =
@@ -1394,4 +1425,20 @@ type ``Given a Discrete TimeLine`` () =
         let actual = TimeLine.toSeq None IntervalType.T.LeftClosedRightOpen (TimeSpan.FromMinutes(1.0)) line
         let expected = Seq.empty
         actual |> should equal expected 
+
+    [<Test>]
+    member x.``I can convert a line into a sequence of points`` () =
+        let points = [Helper.d0, Some 0.0; Helper.d0.AddMinutes(30.0), Some 100.; Helper.d0.AddMinutes(60.0), Some 200.] |> List.map TimePoint.make |> List.toSeq     
+        let line = TimeLine.makeDiscrete points
+        let actual = TimeLine.toPoints line
+        let expected = [Helper.d0, Some 0.0; Helper.d0.AddMinutes(30.0), Some 100.; Helper.d0.AddMinutes(60.0), Some 100.] |> List.map TimePoint.make |> List.toSeq
+        actual |> should equal expected 
+
+    [<Test>]
+    member x.``I can convert an empty line into a sequence of points`` () =
+        let line = TimeLine.emptyDiscrete ()
+        let actual = TimeLine.toPoints line
+        let expected = [] |> List.toSeq
+        actual |> should equal expected 
+        
         

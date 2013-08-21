@@ -153,6 +153,19 @@ module TimeLine =
             Interval.Time.toSeq IntervalType.T.Closed timeSpan interval
             |> Seq.map (fun time -> tryFindValue segmentInterpolateF segmentIntervalType time line))
 
+    let toPoints line =
+        match line.Type with
+        | InstantaneousSegments -> 
+            Array.fold (fun points segment -> TimeSegment.startPoint segment :: points) [] line.Segments
+        | DiscreteSegments
+        | ContinuousSegments ->
+            match endPoint line with
+            | Some endPoint ->
+                let startPoints = Array.fold (fun points segment -> TimeSegment.startPoint segment :: points) [] line.Segments
+                endPoint :: startPoints
+            | None -> []
+        |> List.rev
+
     let slice segmentInterpolateF interval line =
         let segments = 
             match line.Type with
