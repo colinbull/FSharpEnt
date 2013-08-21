@@ -15,7 +15,7 @@ let buildDir, testDir, deployDir, docsDir, nugetDir = @"build\artifacts", @"buil
 let nugetDocsDir = nugetDir @@ "docs"
 let nugetKey = if System.IO.File.Exists "./nuget-key.txt" then ReadFileAsString "./nuget-key.txt" else ""
 
-let appReferences = !! @"src\**\*.*sproj"
+let appReferences = !! @"src\**\FSharp.Enterprise.fsproj"
 let testReferences = !! @"tests\**\*.Tests.*sproj"
 
 Target "RestorePackages" RestorePackages
@@ -94,8 +94,8 @@ Target "BuildNuGet" (fun _ ->
     printfn "%s" nugetPath
     [
         "lib", buildDir + "\FSharp.Enterprise.dll"
-        "lib", buildDir + "\FSharp.Enterprise.RabbitMq.dll"
-        "lib", buildDir + "\FSharp.Enterprise.Web.dll"
+      //  "lib", buildDir + "\FSharp.Enterprise.RabbitMq.dll"
+      //  "lib", buildDir + "\FSharp.Enterprise.Web.dll"
     ] |> Seq.iter (fun (folder, path) -> 
                     let dir = nugetDir @@ folder @@ "net40"
                     CreateDir dir
