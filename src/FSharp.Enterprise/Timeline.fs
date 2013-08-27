@@ -29,13 +29,21 @@ module TimeLine =
                 |> Seq.map TimeSegment.makeInstantaneous 
                 |> Seq.toArray
             | DiscreteSegments ->
-                Seq.pairwise points
-                |> Seq.map (fun (p1,p2) -> TimeSegment.makeDiscrete (Interval.Time.make(p1.Time,p2.Time), p1.Value))
-                |> Seq.toArray
-            | ContinuousSegments -> 
-                Seq.pairwise points
-                |> Seq.map TimeSegment.makeContinuous 
-                |> Seq.toArray
+                if Seq.length points = 1 then
+                    let p = Seq.head points
+                    [| TimeSegment.makeDiscrete (Interval.Time.make(p.Time,p.Time), p.Value) |]
+                else
+                    Seq.pairwise points
+                    |> Seq.map (fun (p1,p2) -> TimeSegment.makeDiscrete (Interval.Time.make(p1.Time,p2.Time), p1.Value))
+                    |> Seq.toArray
+            | ContinuousSegments ->
+                if Seq.length points = 1 then
+                    let p = Seq.head points
+                    [| TimeSegment.makeContinuous (p,p) |]
+                else             
+                    Seq.pairwise points
+                    |> Seq.map TimeSegment.makeContinuous 
+                    |> Seq.toArray
         { Type = lineType; Segments = segments }
 
     let empty ``type`` : T<'v> =

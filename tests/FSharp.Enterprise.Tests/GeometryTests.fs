@@ -755,7 +755,7 @@ type ``Given the TimeLine module`` () =
     member x.``I can make a TimeLine from a sequence of points containing a single point`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0|]        
         let actual = TimeLine.makeContinuous points
-        let expected : TimeLine.T<float> = { Type = TimeLine.LineType.ContinuousSegments; Segments = [||] }
+        let expected : TimeLine.T<float> = { Type = TimeLine.LineType.ContinuousSegments; Segments = [| TimeSegment.makeContinuous (TimePoint.make(Helper.d0,Some 0.0), TimePoint.make(Helper.d0,Some 0.0))|] }
         actual |> should equal expected 
 
     [<Test>]
