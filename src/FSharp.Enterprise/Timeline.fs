@@ -57,6 +57,9 @@ module TimeLine =
     let makeContinuous points = make LineType.ContinuousSegments points
     let emptyContinuous () = empty LineType.InstantaneousSegments
 
+    let isEmpty line =
+        line.Segments.Length = 0
+
     let segments (line:T<_>) =
         line.Segments
 
@@ -238,3 +241,9 @@ module TimeLine =
             | Some lineValue -> value = lineValue
             | None -> false                        
         | _ -> false
+
+    let head line =
+        { Type = line.Type; Segments = [| line.Segments.[0] |] }
+
+    let tail line =
+        { Type = line.Type; Segments = line.Segments.[1..] }
