@@ -987,7 +987,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can try find a value before the start of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = TimeLine.makeContinuous points
-        let actual = TimeLine.tryFindValue (Some TimeSegment.interpolateValue) IntervalType.T.Closed (Helper.d0.AddMinutes(-1.0)) line
+        let actual = TimeLine.tryFindValue (Some TimeSegment.interpolateValue) (Helper.d0.AddMinutes(-1.0)) line
         let expected = None
         actual |> should equal expected 
 
@@ -995,7 +995,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can try find a value at the start of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = TimeLine.makeContinuous points
-        let actual = TimeLine.tryFindValue (Some TimeSegment.interpolateValue) IntervalType.T.Closed Helper.d0 line
+        let actual = TimeLine.tryFindValue (Some TimeSegment.interpolateValue) Helper.d0 line
         let expected = Some 0.0
         actual |> should equal expected 
 
@@ -1003,7 +1003,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can try find a value at the end of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = TimeLine.makeContinuous points
-        let actual = TimeLine.tryFindValue (Some TimeSegment.interpolateValue) IntervalType.T.Closed (Helper.d0.AddMinutes(60.0)) line
+        let actual = TimeLine.tryFindValue (Some TimeSegment.interpolateValue) (Helper.d0.AddMinutes(60.0)) line
         let expected = Some 200.0
         actual |> should equal expected 
 
@@ -1011,7 +1011,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can try find a value after the end of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = TimeLine.makeContinuous points
-        let actual = TimeLine.tryFindValue (Some TimeSegment.interpolateValue) IntervalType.T.Closed (Helper.d0.AddMinutes(61.0)) line
+        let actual = TimeLine.tryFindValue (Some TimeSegment.interpolateValue) (Helper.d0.AddMinutes(61.0)) line
         let expected = None
         actual |> should equal expected 
 
@@ -1019,7 +1019,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can try find a value at the start of a segment within the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = TimeLine.makeContinuous points
-        let actual = TimeLine.tryFindValue (Some TimeSegment.interpolateValue) IntervalType.T.Closed (Helper.d0.AddMinutes(30.0)) line
+        let actual = TimeLine.tryFindValue (Some TimeSegment.interpolateValue) (Helper.d0.AddMinutes(30.0)) line
         let expected = Some 100.0
         actual |> should equal expected 
 
@@ -1027,7 +1027,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can try find a value at the within a segment within the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = TimeLine.makeContinuous points
-        let actual = TimeLine.tryFindValue (Some TimeSegment.interpolateValue) IntervalType.T.Closed (Helper.d0.AddMinutes(45.0)) line
+        let actual = TimeLine.tryFindValue (Some TimeSegment.interpolateValue) (Helper.d0.AddMinutes(45.0)) line
         let expected = Some 150.0
         actual |> should equal expected 
 
@@ -1035,14 +1035,14 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can convert a line to a seq`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 30.0; Some 60.0|]        
         let line = TimeLine.makeContinuous points
-        let actual = TimeLine.toSeq (Some TimeSegment.interpolateValue) IntervalType.T.LeftOpenRightClosed (TimeSpan.FromMinutes(1.0)) line |> Seq.toArray
-        let expected = [0 .. 60] |> Seq.map (fun i -> if i = 0 then None else float i |> Some) |> Seq.toArray
+        let actual = TimeLine.toSeq (Some TimeSegment.interpolateValue) (TimeSpan.FromMinutes(1.0)) line |> Seq.toArray
+        let expected = [0 .. 60] |> Seq.map (fun i -> float i |> Some) |> Seq.toArray
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can convert an empty line to a seq`` () =
         let line : TimeLine.T<float> = TimeLine.empty TimeLine.LineType.ContinuousSegments
-        let actual = TimeLine.toSeq (Some TimeSegment.interpolateValue) IntervalType.T.LeftOpenRightClosed (TimeSpan.FromMinutes(1.0)) line
+        let actual = TimeLine.toSeq (Some TimeSegment.interpolateValue) (TimeSpan.FromMinutes(1.0)) line
         let expected = Seq.empty
         actual |> should equal expected 
 
@@ -1222,7 +1222,7 @@ type ``Given an instantaneous TimeLine`` () =
     member x.``I can try find a value before the start of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = TimeLine.makeInstantaneous points
-        let actual = TimeLine.tryFindValue None IntervalType.T.Closed (Helper.d0.AddMinutes(-1.0)) line
+        let actual = TimeLine.tryFindValue None (Helper.d0.AddMinutes(-1.0)) line
         let expected = None
         actual |> should equal expected 
 
@@ -1230,7 +1230,7 @@ type ``Given an instantaneous TimeLine`` () =
     member x.``I can try find a value at the start of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = TimeLine.makeInstantaneous points
-        let actual = TimeLine.tryFindValue None IntervalType.T.Closed Helper.d0 line
+        let actual = TimeLine.tryFindValue None Helper.d0 line
         let expected = Some 0.0
         actual |> should equal expected 
 
@@ -1238,7 +1238,7 @@ type ``Given an instantaneous TimeLine`` () =
     member x.``I can try find a value at the end of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = TimeLine.makeInstantaneous points
-        let actual = TimeLine.tryFindValue None IntervalType.T.Closed (Helper.d0.AddMinutes(60.0)) line
+        let actual = TimeLine.tryFindValue None (Helper.d0.AddMinutes(60.0)) line
         let expected = Some 200.0
         actual |> should equal expected 
 
@@ -1246,7 +1246,7 @@ type ``Given an instantaneous TimeLine`` () =
     member x.``I can try find a value after the end of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = TimeLine.makeInstantaneous points
-        let actual = TimeLine.tryFindValue None IntervalType.T.Closed (Helper.d0.AddMinutes(61.0)) line
+        let actual = TimeLine.tryFindValue None (Helper.d0.AddMinutes(61.0)) line
         let expected = None
         actual |> should equal expected 
 
@@ -1254,7 +1254,7 @@ type ``Given an instantaneous TimeLine`` () =
     member x.``I can try find a value at the start of a segment within the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = TimeLine.makeInstantaneous points
-        let actual = TimeLine.tryFindValue None IntervalType.T.Closed (Helper.d0.AddMinutes(30.0)) line
+        let actual = TimeLine.tryFindValue None (Helper.d0.AddMinutes(30.0)) line
         let expected = Some 100.0
         actual |> should equal expected 
 
@@ -1262,7 +1262,7 @@ type ``Given an instantaneous TimeLine`` () =
     member x.``I can try find a value within a segment within the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = TimeLine.makeInstantaneous points
-        let actual = TimeLine.tryFindValue None IntervalType.T.Closed (Helper.d0.AddMinutes(45.0)) line
+        let actual = TimeLine.tryFindValue None (Helper.d0.AddMinutes(45.0)) line
         let expected = None
         actual |> should equal expected 
 
@@ -1270,7 +1270,7 @@ type ``Given an instantaneous TimeLine`` () =
     member x.``I can convert a line to a seq`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 30.0; Some 60.0|]        
         let line = TimeLine.makeInstantaneous points
-        let actual = TimeLine.toSeq None IntervalType.T.Closed (TimeSpan.FromMinutes(1.0)) line |> Seq.toArray
+        let actual = TimeLine.toSeq None (TimeSpan.FromMinutes(1.0)) line |> Seq.toArray
         let expected = 
             seq { 
                 yield Some 0.0
@@ -1284,7 +1284,7 @@ type ``Given an instantaneous TimeLine`` () =
     [<Test>]
     member x.``I can convert an empty line to a seq`` () =
         let line : TimeLine.T<float> = TimeLine.empty TimeLine.LineType.InstantaneousSegments
-        let actual = TimeLine.toSeq None IntervalType.T.Closed (TimeSpan.FromMinutes(1.0)) line
+        let actual = TimeLine.toSeq None (TimeSpan.FromMinutes(1.0)) line
         let expected = Seq.empty
         actual |> should equal expected 
 
@@ -1309,19 +1309,19 @@ type ``Given a Discrete TimeLine`` () =
     [<Test>]
     member x.``I can take a slice of the timeline with a single element`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.|]        
-        let line = TimeLine.makeDiscrete points
+        let line = TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen points
         let actual = TimeLine.slice None (Helper.d0,Helper.d0.AddMinutes(30.)) line
         let expected = 
             [|
                 TimePoint.make (Helper.d0, Some 0.0)
                 TimePoint.make(Helper.d0.AddMinutes(30.), Some 0.)
-            |] |> TimeLine.makeDiscrete
+            |] |> TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can take a slice of a TimeLine when the interval ends in the middle of a segement but spanning two segments``() =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.; Some 200.; Some 250.|] 
-        let line = TimeLine.makeDiscrete points
+        let line = TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen points
         let interval = Interval.make (Helper.d0.AddMinutes(15.),Helper.d0.AddMinutes(45.))
         let actual = TimeLine.slice None interval line
         let expected = 
@@ -1329,114 +1329,114 @@ type ``Given a Discrete TimeLine`` () =
                 TimePoint.make (Helper.d0.AddMinutes(15.), Some 0.0)
                 TimePoint.make (Helper.d0.AddMinutes(30.), Some 100.0)
                 TimePoint.make(Helper.d0.AddMinutes(45.), Some 100.)
-            |] |> TimeLine.makeDiscrete
+            |] |> TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can take a slice of a TimeLine when a single segment wraps the interal completely``() =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.;|] 
-        let line = TimeLine.makeDiscrete points
+        let line = TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen points
         let interval = Interval.make (Helper.d0.AddMinutes(10.),Helper.d0.AddMinutes(15.))
         let actual = TimeLine.slice None interval line
         let expected = 
             [|
                 TimePoint.make (Helper.d0.AddMinutes(10.), Some 0.0)
                 TimePoint.make(Helper.d0.AddMinutes(15.), Some 0.)
-            |] |> TimeLine.makeDiscrete
+            |] |> TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can take a slice of a TimeLine when the interval is fully within the timeline``() =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.; Some 200.; Some 250.|] 
-        let line = TimeLine.makeDiscrete points
+        let line = TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen points
         let interval = Interval.make (Helper.d0.AddMinutes(30.),Helper.d0.AddHours(1.))
         let actual = TimeLine.slice None interval line
         let expected = 
             [|
                 TimePoint.make (Helper.d0.AddMinutes(30.), Some 100.0)
                 TimePoint.make(Helper.d0.AddMinutes(60.), Some 100.)
-            |] |> TimeLine.makeDiscrete
+            |] |> TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can try find a value before the start of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
-        let line = TimeLine.makeDiscrete points
-        let actual = TimeLine.tryFindValue None IntervalType.T.Closed (Helper.d0.AddMinutes(-1.0)) line
+        let line = TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen points
+        let actual = TimeLine.tryFindValue None (Helper.d0.AddMinutes(-1.0)) line
         let expected = None
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can try find a value at the start of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
-        let line = TimeLine.makeDiscrete points
-        let actual = TimeLine.tryFindValue None IntervalType.T.Closed (Helper.d0) line
+        let line = TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen points
+        let actual = TimeLine.tryFindValue None (Helper.d0) line
         let expected = Some 0.0
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can try find a value at the end of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
-        let line = TimeLine.makeDiscrete points
-        let actual = TimeLine.tryFindValue None IntervalType.T.Closed (Helper.d0.AddMinutes(60.0)) line
+        let line = TimeLine.makeDiscrete IntervalType.T.LeftOpenRightClosed points
+        let actual = TimeLine.tryFindValue None (Helper.d0.AddMinutes(60.0)) line
         let expected = Some 100.0
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can try find a value after the end of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
-        let line = TimeLine.makeDiscrete points
-        let actual = TimeLine.tryFindValue None IntervalType.T.Closed (Helper.d0.AddMinutes(61.0)) line
+        let line = TimeLine.makeDiscrete IntervalType.T.LeftOpenRightClosed points
+        let actual = TimeLine.tryFindValue None (Helper.d0.AddMinutes(61.0)) line
         let expected = None
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can try find a value at the start of a segment within the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
-        let line = TimeLine.makeDiscrete points
-        let actual = TimeLine.tryFindValue None IntervalType.T.Closed (Helper.d0.AddMinutes(30.0)) line
-        let expected = Some 0.0
+        let line = TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen points
+        let actual = TimeLine.tryFindValue None (Helper.d0.AddMinutes(30.0)) line
+        let expected = Some 100.0
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can try find a value within a segment within the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
-        let line = TimeLine.makeDiscrete points
-        let actual = TimeLine.tryFindValue None IntervalType.T.Closed (Helper.d0.AddMinutes(45.0))line
+        let line = TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen points
+        let actual = TimeLine.tryFindValue None (Helper.d0.AddMinutes(45.0))line
         let expected = Some 100.0
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can convert a line to a seq`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 30.0; Some 60.0|]        
-        let line = TimeLine.makeDiscrete points
-        let actual = TimeLine.toSeq None IntervalType.T.LeftOpenRightClosed (TimeSpan.FromMinutes(1.0)) line |> Seq.toArray
+        let line = TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen points
+        let actual = TimeLine.toSeq None (TimeSpan.FromMinutes(1.0)) line |> Seq.toArray
         let expected = 
             seq {
-                yield None
                 yield! Seq.init 30 (fun i -> Some 0.0); 
-                yield! Seq.init 30 (fun i -> Some 30.0);  
+                yield! Seq.init 30 (fun i -> Some 30.0);
+                yield None  
             } |> Seq.toArray
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can convert an empty line to a seq`` () =
-        let line : TimeLine.T<float> = TimeLine.empty TimeLine.LineType.DiscreteSegments
-        let actual = TimeLine.toSeq None IntervalType.T.LeftClosedRightOpen (TimeSpan.FromMinutes(1.0)) line
+        let line : TimeLine.T<float> = TimeLine.emptyDiscrete IntervalType.T.LeftClosedRightOpen
+        let actual = TimeLine.toSeq None (TimeSpan.FromMinutes(1.0)) line
         let expected = Seq.empty
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can convert a line into a sequence of points`` () =
         let points = [Helper.d0, Some 0.0; Helper.d0.AddMinutes(30.0), Some 100.; Helper.d0.AddMinutes(60.0), Some 200.] |> List.map TimePoint.make |> List.toSeq     
-        let line = TimeLine.makeDiscrete points
+        let line = TimeLine.makeDiscrete IntervalType.T.LeftClosedRightOpen points
         let actual = TimeLine.toPoints line
         let expected = [Helper.d0, Some 0.0; Helper.d0.AddMinutes(30.0), Some 100.; Helper.d0.AddMinutes(60.0), Some 100.] |> List.map TimePoint.make |> List.toSeq
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can convert an empty line into a sequence of points`` () =
-        let line = TimeLine.emptyDiscrete ()
+        let line = TimeLine.emptyDiscrete IntervalType.T.LeftClosedRightOpen
         let actual = TimeLine.toPoints line
         let expected = [] |> List.toSeq
         actual |> should equal expected 

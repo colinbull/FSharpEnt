@@ -8,7 +8,7 @@ module TimeLine =
 
     type LineType =
         | InstantaneousSegments
-        | DiscreteSegments
+        | DiscreteSegments of IntervalType.T
         | ContinuousSegments
 
     type T<'v> = {
@@ -28,7 +28,7 @@ module TimeLine =
                 points 
                 |> Seq.map TimeSegment.makeInstantaneous 
                 |> Seq.toArray
-            | DiscreteSegments ->
+            | DiscreteSegments _ ->
                 if Seq.length points = 1 then
                     let p = Seq.head points
                     [| TimeSegment.makeDiscrete (Interval.Time.make(p.Time,p.Time), p.Value) |]
@@ -36,7 +36,7 @@ module TimeLine =
                     Seq.pairwise points
                     |> Seq.map (fun (p1,p2) -> TimeSegment.makeDiscrete (Interval.Time.make(p1.Time,p2.Time), p1.Value))
                     |> Seq.toArray
-            | ContinuousSegments ->
+            | ContinuousSegments _ ->
                 if Seq.length points = 1 then
                     let p = Seq.head points
                     [| TimeSegment.makeContinuous (p,p) |]
@@ -52,13 +52,19 @@ module TimeLine =
 
     let makeInstantaneous points = make LineType.InstantaneousSegments points
     let emptyInstantaneous () = empty LineType.InstantaneousSegments
-    let makeDiscrete points = make LineType.DiscreteSegments points
-    let emptyDiscrete () = empty LineType.InstantaneousSegments
+    let makeDiscrete intervalType points = make (LineType.DiscreteSegments intervalType) points
+    let emptyDiscrete intervalType = empty (LineType.DiscreteSegments intervalType)
     let makeContinuous points = make LineType.ContinuousSegments points
     let emptyContinuous () = empty LineType.InstantaneousSegments
 
     let isEmpty line =
         line.Segments.Length = 0
+
+    let segmentIntervalType line = 
+        match line.Type with
+        | InstantaneousSegments 
+        | ContinuousSegments -> IntervalType.T.Closed
+        | DiscreteSegments intervalType -> intervalType
 
     let segments (line:T<_>) =
         line.Segments
@@ -98,8 +104,8 @@ module TimeLine =
         let segments =
             match lineType with
             | InstantaneousSegments -> [| TimeSegment.emptyInstantaneous (Interval.left interval) |]
-            | DiscreteSegments -> [| TimeSegment.emptyDiscrete interval |]
-            | ContinuousSegments -> [| TimeSegment.emptyContinuous interval |]
+            | DiscreteSegments _ -> [| TimeSegment.emptyDiscrete interval |]
+            | ContinuousSegments _ -> [| TimeSegment.emptyContinuous interval |]
         { Type = lineType; Segments = segments }
 
     let range line =
@@ -145,8 +151,8 @@ module TimeLine =
             | Some startTime -> startTime :: endTimes line
             | _ -> []
 
-    let tryFindSegment intervalType time line =
-        Array.tryFind (TimeSegment.isTimeInRange intervalType time) line.Segments
+    let tryFindSegment time line =        
+        Array.tryFind (TimeSegment.isTimeInRange (segmentIntervalType line) time) line.Segments
 
     let intersections line1 line2 =
         [|
@@ -160,21 +166,24 @@ module TimeLine =
     let volume timeUnitF line =
         Array.choose (TimeSegment.volume timeUnitF) line.Segments |> Array.sum
 
-    let tryFindValue segmentInterpolateF segmentIntervalType time (line:T<'v>) =            
-        Array.tryPick (TimeSegment.tryFindValue segmentInterpolateF segmentIntervalType time) line.Segments
+    let tryFindValue segmentInterpolateF time (line:T<'v>) =            
+        Array.tryPick (TimeSegment.tryFindValue segmentInterpolateF (segmentIntervalType line) time) line.Segments
 
-    let toSeq segmentInterpolateF segmentIntervalType timeSpan (line:T<float<'u>>) =
+    let tryFindValues segmentInterpolateF time (line:T<'v>) =
+        Array.choose (TimeSegment.tryFindValue segmentInterpolateF (segmentIntervalType line) time) line.Segments
+
+    let toSeq segmentInterpolateF timeSpan (line:T<float<'u>>) =
         range line
         |> Option.getOrElseWith Seq.empty (fun interval ->
             Interval.Time.toSeq IntervalType.T.Closed timeSpan interval
-            |> Seq.map (fun time -> tryFindValue segmentInterpolateF segmentIntervalType time line))
+            |> Seq.map (fun time -> tryFindValue segmentInterpolateF time line))
 
     let toPoints line =
         match line.Type with
         | InstantaneousSegments -> 
             Array.fold (fun points segment -> TimeSegment.startPoint segment :: points) [] line.Segments
-        | DiscreteSegments
-        | ContinuousSegments ->
+        | DiscreteSegments _
+        | ContinuousSegments _ ->
             match endPoint line with
             | Some endPoint ->
                 let startPoints = Array.fold (fun points segment -> TimeSegment.startPoint segment :: points) [] line.Segments
@@ -187,7 +196,7 @@ module TimeLine =
             match line.Type with
             | InstantaneousSegments ->
                 Array.filter (fun segment -> Interval.Time.isIn IntervalType.T.Closed (TimeSegment.startTime segment) interval) line.Segments
-            | DiscreteSegments ->
+            | DiscreteSegments _ ->
                 line.Segments
                 |> Array.choose (fun seg -> 
                     match (interval, seg) with
@@ -201,7 +210,7 @@ module TimeLine =
                         Some (TimeSegment.map (fun (s,e) -> TimePoint.mapTime (fun _ -> dt) s, e) seg)
                     | TimeSegment.OverlapEnd (dt,seg) ->
                         Some (TimeSegment.map (fun (s,e) -> s, TimePoint.map (fun (_,_) -> dt,s.Value) e) seg))
-            | ContinuousSegments ->
+            | ContinuousSegments _ ->
                 line.Segments
                 |> Array.choose (fun seg -> 
                     match (interval, seg) with
@@ -220,24 +229,24 @@ module TimeLine =
         { Type = line.Type; Segments = segments}
 
     let append (line1:T<float<'u>>) (line2:T<float<'u>>) =
-        checkLineType "line1" LineType.ContinuousSegments line1
-        checkLineType "line2" LineType.ContinuousSegments line2
+        //checkLineType "line1" LineType.ContinuousSegments line1
+        //checkLineType "line2" LineType.ContinuousSegments line2
         match startTime line1, startTime line2 with
         | Some startTime, Some endTime ->             
             let interval = Interval.Time.make(startTime, endTime)
             let line1Slice = slice (Some TimeSegment.interpolateValue) interval line1
             let segments = Array.append line1Slice.Segments line2.Segments
-            { Type = LineType.ContinuousSegments; Segments = segments}
+            { Type = line1.Type; Segments = segments}
         | None, Some _ ->
             line2
         | _ ->
             line1
 
     let isPointOnLine point line =
-        checkLineType "line" LineType.ContinuousSegments line
+        //checkLineType "line" LineType.ContinuousSegments line
         match range line, TimePoint.value point with
         | Some interval, Some value ->
-            match tryFindValue (Some TimeSegment.interpolateValue) IntervalType.T.Closed (TimePoint.time point) line with
+            match tryFindValue (Some TimeSegment.interpolateValue) (TimePoint.time point) line with
             | Some lineValue -> value = lineValue
             | None -> false                        
         | _ -> false

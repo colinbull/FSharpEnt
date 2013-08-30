@@ -153,7 +153,7 @@ module TimeSegment =
                 Some(TimePoint.make(time, Some value)))
         | _ -> None
          
-    let tryFindValue interpolateF intervalType (t:DateTimeOffset) s = 
+    let tryFindValue interpolateF intervalType (t:DateTimeOffset) s =    
         let interpolate = function
             | Instantaneous p -> p.Value
             | Discrete (_,value) -> value 
