@@ -18,7 +18,12 @@ open FSharp.Enterprise
 Traditionally searching for files in .NET required some does not support recursive file patterns. `FileSystem.Search` adds this capability
 *)
 
-let searchPath = __SOURCE_DIRECTORY__ + "/**/*.C*.fsx"
+let fullSearchPath = __SOURCE_DIRECTORY__ + "/**/*.C*.fsx"
+let filesFound = 
+    FileSystem.Search.findFiles None fullSearchPath
+    |> Seq.toArray
+
+let searchPath = "/**/*.C*.fsx"
 let filesFound = 
     FileSystem.Search.findFiles None searchPath
     |> Seq.toArray
