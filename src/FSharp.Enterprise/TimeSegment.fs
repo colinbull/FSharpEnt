@@ -157,7 +157,10 @@ module TimeSegment =
         let interpolate = function
             | Instantaneous p -> p.Value
             | Discrete (_,value) -> value 
-            | Continuous (p1,p2) -> (Option.get interpolateF) t s
+            | Continuous (p1,p2) -> 
+                match interpolateF with
+                | Some f -> f t s
+                | None -> startValue s
         if isTimeInRange intervalType t s 
         then interpolate s
         else None
