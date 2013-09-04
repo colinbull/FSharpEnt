@@ -250,9 +250,3 @@ module TimeLine =
             | Some lineValue -> value = lineValue
             | None -> false                        
         | _ -> false
-
-    let head line =
-        { Type = line.Type; Segments = [| line.Segments.[0] |] }
-
-    let tail line =
-        { Type = line.Type; Segments = line.Segments.[1..] }
