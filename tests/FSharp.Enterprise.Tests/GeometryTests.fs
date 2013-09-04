@@ -1303,6 +1303,14 @@ type ``Given an instantaneous TimeLine`` () =
         let expected = [] |> List.toSeq
         actual |> should equal expected
 
+    [<Test>]
+    member x.``I can sum the segments in a line by some function`` () =
+        let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 30.0; Some 60.0|]        
+        let line = TimeLine.makeInstantaneous points
+        let actual = TimeLine.sumBy TimeSegment.startValue line
+        let expected = Some 90.0
+        actual |> should equal expected
+
 
 type ``Given a Discrete TimeLine`` () =
 

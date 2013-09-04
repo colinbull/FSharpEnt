@@ -127,6 +127,9 @@ module TimeLine =
     let fold<'v,'State> f (acc:'State) (line:T<'v>) =
         Array.fold f acc line.Segments 
 
+    let inline sumBy f line =
+        fold (fun state segment -> f segment |> Option.accumulate state) None line
+
     let exists (f: TimeSegment.T<'v> -> bool) (line:T<'v>) =
         Array.exists f line.Segments
 
