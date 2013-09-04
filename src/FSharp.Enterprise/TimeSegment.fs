@@ -15,7 +15,7 @@ module TimeSegment =
         | Instantaneous of TimePoint.T<'v>
         | Discrete of Interval.T<DateTimeOffset> * 'v option
         | Continuous of TimePoint.T<'v> * TimePoint.T<'v>
-
+       
     let makeInstantaneous p =
         Instantaneous p
 
