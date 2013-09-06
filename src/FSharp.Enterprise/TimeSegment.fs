@@ -118,9 +118,9 @@ module TimeSegment =
     let interpolateValue<[<Measure>]'u> (time:DateTimeOffset) (s:T<float<'u>>) =
         match startValue s, endValue s with
         | Some y0, Some y1 ->
-            let startX = float (startTime s).UtcTicks
-            let endX = float (endTime s).UtcTicks
-            let x = float time.UtcTicks
+            let startX = float (startTime s).Ticks
+            let endX = float (endTime s).Ticks
+            let x = float time.Ticks
             let y = Math.Interpolation.linear x startX y0 endX y1
             Some y
         | _ -> None 
@@ -130,22 +130,22 @@ module TimeSegment =
             if isFlat s then
                 Some (startTime s)
             else
-                let startX = float (startTime s).UtcTicks
-                let endX = float (endTime s).UtcTicks
+                let startX = float (startTime s).Ticks
+                let endX = float (endTime s).Ticks
                 let y0 = Option.get (startValue s)
                 let y1 = Option.get (endValue s) 
                 let x = Math.Interpolation.linear value y0 startX y1 endX
-                Some (DateTimeOffset(int64 x, TimeSpan.Zero))
+                Some (DateTimeOffset(int64 x, (startTime s).Offset))
         else
             None                     
 
     let intersection<[<Measure>]'u> (s1:T<float<'u>>) (s2:T<float<'u>>) : TimePoint.T<float<'u>> option=
         match startValue s1, endValue s1, startValue s2, endValue s2 with
         | Some y0, Some y1, Some y2, Some y3 ->
-            let x0 = float (startTime s1).UtcTicks
-            let x1 = float (endTime s1).UtcTicks
-            let x2 = float (startTime s2).UtcTicks
-            let x3 = float (endTime s2).UtcTicks
+            let x0 = float (startTime s1).Ticks
+            let x1 = float (endTime s1).Ticks
+            let x2 = float (startTime s2).Ticks
+            let x3 = float (endTime s2).Ticks
             Math.intersection x0 (float y0) x1 (float y1) x2 (float y2) x3 (float y3)
             |> Option.getOrElseWith None (fun (t,v) ->
                 let time = DateTimeOffset(int64 t, (startTime s1).Offset)

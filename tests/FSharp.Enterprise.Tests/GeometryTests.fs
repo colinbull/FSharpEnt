@@ -730,6 +730,15 @@ type ``Given the TimeSegment module`` () =
         let expected = Some startTime
         actual |> should equal expected
 
+    [<Test>]
+    member x.``the interpolateTime on a line at the line value is correct`` () =
+        let startTime = DateTimeOffset(2013,5,6,7,0,0,TimeSpan.FromHours(1.0))
+        let endTime = startTime.AddMinutes(30.0)
+        let segment = TimeSegment.makeContinuous(TimePoint.make(startTime, Some 105.0),TimePoint.make(endTime, Some 95.0))
+        let actual = TimeSegment.interpolateTime 100.0 segment
+        let expected = Some (startTime.AddMinutes(15.0))
+        actual |> should equal expected
+
 type ``Given the TimeLine module`` () =
 
     [<Test>]
