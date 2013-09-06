@@ -12,6 +12,7 @@ open FSharp.Enterprise.DateTimeOffset
 type ``Given a DateTimeOffset`` () =
 
     let date = DateTimeOffset(2013,5,8,23,0,0,TimeSpan.FromHours(0.0))
+    let day = DateTimeOffset(2013,5,8,0,0,0,TimeSpan.FromHours(0.0))
 
     let singleMonth month (granularity : TimeSpan) = 
       let s = (DateTimeOffset(2012, month, 01, 0, 0, 0, TimeSpan.FromHours(0.)))
@@ -57,22 +58,21 @@ type ``Given a DateTimeOffset`` () =
     
     [<Test>]
     member x.``I can round down to the nearest day`` () =
-        let actual = date.AddHours(11.) |> DateTimeOffset.roundDay
-        let expected = date
+        let actual = day.AddHours(12.).AddSeconds(-1.0) |> DateTimeOffset.roundDay
+        let expected = day
         actual |> should equal expected
 
     [<Test>]
     member x.``I can round up to the nearest day at midday`` () =
-        let actual = date.AddHours(12.) |> DateTimeOffset.roundDay
-        let expected = date
+        let actual = day.AddHours(12.) |> DateTimeOffset.roundDay
+        let expected = day
         actual |> should equal expected
 
     [<Test>]
     member x.``I can round up to the nearest day`` () =
-        let actual = date.AddHours(13.) |> DateTimeOffset.roundDay
-        let expected = date.AddDays(1.)
+        let actual = day.AddHours(12.).AddSeconds(1.) |> DateTimeOffset.roundDay
+        let expected = day.AddDays(1.)
         actual |> should equal expected
-
 
     [<Test>]
     member x.``I can get the halfhour ceiling with 0 seconds past the hour`` () =
@@ -172,50 +172,50 @@ type ``Given a DateTimeOffset`` () =
 
     [<Test>]
     member x.``I can get the day ceiling with 0 seconds past the hour`` () =
-        let actual = date |> DateTimeOffset.ceilDay
-        let expected = date
+        let actual = day |> DateTimeOffset.ceilDay
+        let expected = day
         actual |> should equal expected
 
     [<Test>]
     member x.``I can get the day ceiling with 1 second past the hour`` () =
-        let actual = date.AddSeconds(1.0) |> DateTimeOffset.ceilDay
-        let expected = date.AddMinutes(1.0)
+        let actual = day.AddSeconds(1.0) |> DateTimeOffset.ceilDay
+        let expected = day.AddDays(1.0)
         actual |> should equal expected
 
     [<Test>]
     member x.``I can get the day ceiling with 0 seconds past midday`` () =
-        let actual = date.AddMinutes(30.0) |> DateTimeOffset.ceilDay
-        let expected = date.AddMinutes(30.0)
+        let actual = day.AddHours(12.0) |> DateTimeOffset.ceilDay
+        let expected = day.AddDays(1.0)
         actual |> should equal expected
 
     [<Test>]
     member x.``I can get the day ceiling with 1 seconds past midday`` () =
-        let actual = date.AddMinutes(30.0).AddSeconds(1.0) |> DateTimeOffset.ceilDay
-        let expected = date.AddMinutes(31.0)
+        let actual = day.AddHours(12.0).AddSeconds(1.0) |> DateTimeOffset.ceilDay
+        let expected = day.AddDays(1.0)
         actual |> should equal expected
 
     [<Test>]
     member x.``I can get the day floor with 0 seconds past the hour`` () =
-        let actual = date |> DateTimeOffset.floorDay
-        let expected = date
+        let actual = day |> DateTimeOffset.floorDay
+        let expected = day
         actual |> should equal expected
 
     [<Test>]
     member x.``I can get the day floor with 1 second past the hour`` () =
-        let actual = date.AddSeconds(1.0) |> DateTimeOffset.floorDay
-        let expected = date
+        let actual = day.AddSeconds(1.0) |> DateTimeOffset.floorDay
+        let expected = day
         actual |> should equal expected
 
     [<Test>]
     member x.``I can get the day floor with 0 seconds past midday`` () =
-        let actual = date.AddMinutes(30.0) |> DateTimeOffset.floorDay
-        let expected = date.AddMinutes(30.0)
+        let actual = day.AddHours(12.0) |> DateTimeOffset.floorDay
+        let expected = day
         actual |> should equal expected
 
     [<Test>]
     member x.``I can get the day floor with 1 seconds past midday`` () =
-        let actual = date.AddMinutes(30.0).AddSeconds(1.0) |> DateTimeOffset.floorDay
-        let expected = date.AddMinutes(30.0)
+        let actual = day.AddHours(12.0).AddSeconds(1.0) |> DateTimeOffset.floorDay
+        let expected = day
         actual |> should equal expected
 
     [<Test>]
