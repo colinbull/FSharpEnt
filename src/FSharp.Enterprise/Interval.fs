@@ -205,16 +205,18 @@ module Interval =
                 Seq.empty
             else
                 make(startTime,endTime) |> toSeq intervalType step
+                
+        /// Returns the times of the days that fall within the interval.
+        let getDayTimes intervalType (interval:T<DateTimeOffset>) =
+            getTimes intervalType DateTimeOffset.ceilDay DateTimeOffset.floorDay (TimeSpan.FromDays(1.0)) interval        
                                 
         /// Returns the times of the halfhours that fall within the interval.
         let getHalfhourTimes intervalType (interval:T<DateTimeOffset>) =
-            interval
-            |> getTimes intervalType DateTimeOffset.ceilHalfhour DateTimeOffset.floorHalfhour (TimeSpan.FromMinutes(30.0))
+            getTimes intervalType DateTimeOffset.ceilHalfhour DateTimeOffset.floorHalfhour (TimeSpan.FromMinutes(30.0)) interval
 
         /// Returns the times of the minutes that fall within the interval.
-        let getMinuteTimes intervalType (interval:T<DateTimeOffset>) =
-            interval
-            |> getTimes intervalType DateTimeOffset.ceilMinute DateTimeOffset.floorMinute (TimeSpan.FromMinutes(1.0))
+        let getMinuteTimes intervalType (interval:T<DateTimeOffset>) = 
+            getTimes intervalType DateTimeOffset.ceilMinute DateTimeOffset.floorMinute (TimeSpan.FromMinutes(1.0)) interval
         
         let incr (span:TimeSpan) (interval:T) : T = 
             interval |> map (fun (s,e) -> s.Add(span), e.Add(span)) 
