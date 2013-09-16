@@ -68,6 +68,18 @@ module Interval =
     let merge i1 i2 =
         make(min (left i1) (left i2), max (right i1) (right i2))
 
+    /// Returns true if the intervals intersect, otherwise false.
+    let inline intersects i1 i2 =
+        let a,b = left i1, right i1
+        let c,d = left i2, right i2 
+        (max a b > min c d) && (min a b < max c d)
+
+    /// Returns <0 if there is no overlap, 0 if touching and >0 if intersecting.
+    let inline overlaps i1 i2 =
+        let a,b = left i1, right i1
+        let c,d = left i2, right i2 
+        min (max a b) (max c d) - max (min c d) (min a b)
+   
     /// Represents an interval between two options of float.
     module Value =
 
@@ -198,9 +210,9 @@ module Interval =
                 if IntervalType.isRightClosed intervalType then yield endTime
             }
 
-        let getTimes intervalType ceilF floorF step (interval:T<DateTimeOffset>) =
-            let startTime = interval |> left |> ceilF
-            let endTime = interval |> right |> floorF
+        let getTimes intervalType leftF rightF step (interval:T<DateTimeOffset>) =
+            let startTime = interval |> left |> leftF
+            let endTime = interval |> right |> rightF
             if startTime > right interval || endTime < left interval then
                 Seq.empty
             else

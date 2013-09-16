@@ -284,6 +284,32 @@ type ``Given a value interval`` () =
         let expected = Interval.make(3,4)
         actual |> should equal expected
 
+    [<Test>]
+    member x.``I can determine if two intervals intersect`` () =
+        Interval.intersects (Interval.make(2.0,2.5)) (Interval.make(3.0,4.0)) |> should be False
+        Interval.intersects (Interval.make(2.0,3.0)) (Interval.make(3.0,4.0)) |> should be False
+        Interval.intersects (Interval.make(2.0,3.5)) (Interval.make(3.0,4.0)) |> should be True
+        Interval.intersects (Interval.make(2.0,4.0)) (Interval.make(3.0,4.0)) |> should be True
+        Interval.intersects (Interval.make(2.0,5.0)) (Interval.make(3.0,4.0)) |> should be True
+        Interval.intersects (Interval.make(3.0,5.0)) (Interval.make(3.0,4.0)) |> should be True
+        Interval.intersects (Interval.make(3.5,5.0)) (Interval.make(3.0,4.0)) |> should be True
+        Interval.intersects (Interval.make(4.0,5.0)) (Interval.make(3.0,4.0)) |> should be False
+        Interval.intersects (Interval.make(4.5,5.0)) (Interval.make(3.0,4.0)) |> should be False
+        Interval.intersects (Interval.make(3.2,3.7)) (Interval.make(3.0,4.0)) |> should be True
+
+    [<Test>]
+    member x.``I can determine if two intervals overlap`` () =
+        Interval.overlaps (Interval.make(2.0,2.5)) (Interval.make(3.0,4.0)) |> should be (lessThan 0.0)
+        Interval.overlaps (Interval.make(2.0,3.0)) (Interval.make(3.0,4.0)) |> should equal 0.0
+        Interval.overlaps (Interval.make(2.0,3.5)) (Interval.make(3.0,4.0)) |> should be (greaterThan 0.0)
+        Interval.overlaps (Interval.make(2.0,4.0)) (Interval.make(3.0,4.0)) |> should be (greaterThan 0.0)
+        Interval.overlaps (Interval.make(2.0,5.0)) (Interval.make(3.0,4.0)) |> should be (greaterThan 0.0)
+        Interval.overlaps (Interval.make(3.0,5.0)) (Interval.make(3.0,4.0)) |> should be (greaterThan 0.0)
+        Interval.overlaps (Interval.make(3.5,5.0)) (Interval.make(3.0,4.0)) |> should be (greaterThan 0.0)
+        Interval.overlaps (Interval.make(4.0,5.0)) (Interval.make(3.0,4.0)) |> should equal 0.0
+        Interval.overlaps (Interval.make(4.5,5.0)) (Interval.make(3.0,4.0)) |> should be (lessThan 0.0)
+        Interval.overlaps (Interval.make(3.2,3.7)) (Interval.make(3.0,4.0)) |> should be (greaterThan 0.0)
+
     
 [<TestFixture; Category("Unit")>]
 type ``Given the Interval Time module`` () =
@@ -552,6 +578,32 @@ type ``Given a time interval`` () =
         let expected = closedMinutes.[0..0]
         actual |> should equal expected
     
+    [<Test>]
+    member x.``I can determine if two time intervals intersect`` () =
+        Interval.intersects (Interval.Time.make(d1.AddMinutes(2.0),d1.AddMinutes(2.5))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be False
+        Interval.intersects (Interval.Time.make(d1.AddMinutes(2.0),d1.AddMinutes(3.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be False
+        Interval.intersects (Interval.Time.make(d1.AddMinutes(2.0),d1.AddMinutes(3.5))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be True
+        Interval.intersects (Interval.Time.make(d1.AddMinutes(2.0),d1.AddMinutes(4.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be True
+        Interval.intersects (Interval.Time.make(d1.AddMinutes(2.0),d1.AddMinutes(5.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be True
+        Interval.intersects (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(5.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be True
+        Interval.intersects (Interval.Time.make(d1.AddMinutes(3.5),d1.AddMinutes(5.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be True
+        Interval.intersects (Interval.Time.make(d1.AddMinutes(4.0),d1.AddMinutes(5.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be False
+        Interval.intersects (Interval.Time.make(d1.AddMinutes(4.5),d1.AddMinutes(5.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be False
+        Interval.intersects (Interval.Time.make(d1.AddMinutes(3.2),d1.AddMinutes(3.7))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be True
+
+    [<Test>]
+    member x.``I can determine if two time intervals overlap`` () =
+        Interval.overlaps (Interval.Time.make(d1.AddMinutes(2.0),d1.AddMinutes(2.5))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be (lessThan TimeSpan.Zero)
+        Interval.overlaps (Interval.Time.make(d1.AddMinutes(2.0),d1.AddMinutes(3.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should equal TimeSpan.Zero
+        Interval.overlaps (Interval.Time.make(d1.AddMinutes(2.0),d1.AddMinutes(3.5))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be (greaterThan TimeSpan.Zero)
+        Interval.overlaps (Interval.Time.make(d1.AddMinutes(2.0),d1.AddMinutes(4.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be (greaterThan TimeSpan.Zero)
+        Interval.overlaps (Interval.Time.make(d1.AddMinutes(2.0),d1.AddMinutes(5.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be (greaterThan TimeSpan.Zero)
+        Interval.overlaps (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(5.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be (greaterThan TimeSpan.Zero)
+        Interval.overlaps (Interval.Time.make(d1.AddMinutes(3.5),d1.AddMinutes(5.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be (greaterThan TimeSpan.Zero)
+        Interval.overlaps (Interval.Time.make(d1.AddMinutes(4.0),d1.AddMinutes(5.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should equal TimeSpan.Zero
+        Interval.overlaps (Interval.Time.make(d1.AddMinutes(4.5),d1.AddMinutes(5.0))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be (lessThan TimeSpan.Zero)
+        Interval.overlaps (Interval.Time.make(d1.AddMinutes(3.2),d1.AddMinutes(3.7))) (Interval.Time.make(d1.AddMinutes(3.0),d1.AddMinutes(4.0))) |> should be (greaterThan TimeSpan.Zero)
+
 
 [<TestFixture; Category("Unit")>]
 type ``Given the TimePoint module`` () =
