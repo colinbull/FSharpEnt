@@ -130,11 +130,19 @@ module TimeLine =
     let inline sumBy f line =
         fold (fun state segment -> f segment |> Option.accumulate state) None line
 
-    let exists (f: TimeSegment.T<'v> -> bool) (line:T<'v>) =
-        Array.exists f line.Segments
+    let exists (p: TimeSegment.T<'v> -> bool) (line:T<'v>) =
+        Array.exists p line.Segments
 
-    let forall (f: TimeSegment.T<'v> -> bool) (line:T<'v>) =
-        Array.forall f line.Segments
+    let forall (p: TimeSegment.T<'v> -> bool) (line:T<'v>) =
+        Array.forall p line.Segments
+
+    /// Returns true if a point exists where p is true, otherwise false.
+    let pointExists p (line:T<'v>) =
+        Array.exists (TimeSegment.exists p) line.Segments
+
+    /// Returns true if for all points p is true, otherwise false.
+    let forallPoints p (line:T<'v>) =
+        Array.forall (TimeSegment.forall p) line.Segments
 
     let endTimes line =
         line 

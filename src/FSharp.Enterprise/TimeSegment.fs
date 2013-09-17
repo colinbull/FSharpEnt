@@ -9,7 +9,6 @@ open System
 module TimeSegment =
     
     open FSharpx
-    open OptionOperators
 
     type T<'v> =
         | Instantaneous of TimePoint.T<'v>
@@ -178,25 +177,15 @@ module TimeSegment =
          then OverlapEnd (iEnd, segment)
          else Overlap (iStart, iEnd, segment)
 
-    /// Returns true if both the start and end value of the segment is zero.    
-    let inline isZero s =
-        startValue s ?<= LanguagePrimitives.GenericZero && endValue s ?<= LanguagePrimitives.GenericZero
+    /// Returns true if the predicate applied to either the start point or the
+    /// end point returns true, otherwise false
+    let exists p s =
+        p (startPoint s) || p (endPoint s)
 
-    /// Returns true if either the start or end value of the segment is non zero.    
-    let inline isNonZero s =
-        startValue s ?> LanguagePrimitives.GenericZero || endValue s ?> LanguagePrimitives.GenericZero
-
-    /// Returns true if either the start or end value of the segment is none.    
-    let isNone s =
-        startValue s = None || endValue s = None
-
-    /// Returns true if either the start or end value of the segment is below the given value.
-    let isBelow value s =
-        startValue s ?< value || endValue s ?< value
-
-    /// Returns true if either the start or end value of the segment is above the given value.
-    let isAbove value s =
-        startValue s ?> value || endValue s ?> value
+    /// Returns true if the predicate applied to both the start point and the 
+    /// end point returns true, otherwise false
+    let forall p s =
+        p (startPoint s) && p (endPoint s)
 
     let volume timeUnitF (s:T<float<'u>>) =
         Option.maybe {

@@ -1,6 +1,7 @@
 ﻿namespace FSharp.Enterprise
 
 open System
+open OptionOperators
 
 #if INTERACTIVE
 open FSharp.Enterprise
@@ -42,4 +43,3 @@ module TimePoint =
         let mutable state = acc 
         state <- f.Invoke(state,(time point, value point))
         state
-
