@@ -5,6 +5,7 @@ module TimeLine =
     open System.Runtime.Serialization     
     open FSharpx
     open FSharpx.Option
+    open FSharp.Enterprise.OptionOperators
 
     type LineType =
         | InstantaneousSegments
@@ -136,13 +137,8 @@ module TimeLine =
     let forall (p: TimeSegment.T<'v> -> bool) (line:T<'v>) =
         Array.forall p line.Segments
 
-    /// Returns true if a point exists where p is true, otherwise false.
-    let pointExists p (line:T<'v>) =
-        Array.exists (TimeSegment.exists p) line.Segments
-
-    /// Returns true if for all points p is true, otherwise false.
-    let forallPoints p (line:T<'v>) =
-        Array.forall (TimeSegment.forall p) line.Segments
+    let tryPick (chooser: TimeSegment.T<'v> -> 'u option) (line:T<'v>) =
+        Array.tryPick chooser line.Segments
 
     let endTimes line =
         line 
