@@ -203,6 +203,10 @@ module TimeLine =
     let tryFindValues segmentInterpolateF time (line:T<'v>) =
         Array.choose (TimeSegment.tryFindValue segmentInterpolateF (segmentIntervalType line) time) line.Segments
 
+    /// Returns true if the predicate applied to the value at time t returns true, otherwise false.
+    let isValueAtTime segmentInterpolateF t p line : bool =
+        (tryFindValue segmentInterpolateF t >> p) line
+
     let toSeq segmentInterpolateF timeSpan (line:T<float<'u>>) =
         range line
         |> Option.getOrElseWith Seq.empty (fun interval ->
