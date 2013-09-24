@@ -53,9 +53,15 @@ module TimeLine =
 
     let makeInstantaneous points = make LineType.InstantaneousSegments points
     let emptyInstantaneous () = empty LineType.InstantaneousSegments
+
     let makeDiscrete intervalType points = make (LineType.DiscreteSegments intervalType) points
+    let makeDiscreteFromSegments intervalType segments = 
+        { Type = DiscreteSegments intervalType; Segments = segments }
     let emptyDiscrete intervalType = empty (LineType.DiscreteSegments intervalType)
+
     let makeContinuous points = make LineType.ContinuousSegments points
+    let makeContinuousFromSegments intervalType segments = 
+        { Type = ContinuousSegments; Segments = segments }
     let emptyContinuous () = empty LineType.InstantaneousSegments
 
     let isEmpty line =
@@ -131,11 +137,29 @@ module TimeLine =
     let inline sumBy f line =
         fold (fun state segment -> f segment |> Option.accumulate state) None line
 
-    let exists (p: TimeSegment.T<'v> -> bool) (line:T<'v>) =
+    /// Returns true if the predicate applied to any segments returns true, otherwise false.
+    let exists p line =
         Array.exists p line.Segments
 
-    let forall (p: TimeSegment.T<'v> -> bool) (line:T<'v>) =
+    /// Returns true if the predicate applied to all segments returns true, otherwise false.
+    let forall p line =
         Array.forall p line.Segments
+
+    /// Returns true if the predicate applied to any segments returns true, otherwise false.
+    let existsPoint p line =
+        exists (TimeSegment.exists p) line 
+
+    /// Returns true if the predicate applied to all segments returns true, otherwise false.
+    let forallPoint p line =
+        forall (TimeSegment.forall p) line
+
+    /// Returns true if the predicate applied to any segments returns true, otherwise false.
+    let existsValue p line =
+        exists (TimeSegment.existsValue p) line 
+
+    /// Returns true if the predicate applied to all segments returns true, otherwise false.
+    let forallValue p line =
+        forall (TimeSegment.forallValue p) line
 
     let tryPick (chooser: TimeSegment.T<'v> -> 'u option) (line:T<'v>) =
         Array.tryPick chooser line.Segments

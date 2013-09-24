@@ -180,12 +180,22 @@ module TimeSegment =
     /// Returns true if the predicate applied to either the start point or the
     /// end point returns true, otherwise false
     let exists p s =
-        p (startPoint s) || p (endPoint s)
+        (startPoint >> p) s || (endPoint >> p) s
 
     /// Returns true if the predicate applied to both the start point and the 
     /// end point returns true, otherwise false
     let forall p s =
-        p (startPoint s) && p (endPoint s)
+        (startPoint >> p) s && (endPoint >> p) s
+
+    /// Returns true if the predicate applied to either the start value or the
+    /// end value returns true, otherwise false
+    let existsValue p s =
+        exists (TimePoint.value >> p) s 
+
+    /// Returns true if the predicate applied to both the start value and the
+    /// end value returns true, otherwise false
+    let forallValue p s =
+        forall (TimePoint.value >> p) s
 
     let volume timeUnitF (s:T<float<'u>>) =
         Option.maybe {
