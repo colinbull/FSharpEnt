@@ -7,113 +7,46 @@ open FSharp.Enterprise
 open System
 
 module TimeSegment =
-    
+
     open FSharpx
+    open System
 
-    type T<'v> =
-        | Instantaneous of TimePoint.T<'v>
-        | Discrete of Interval.T<DateTimeOffset> * 'v option
-        | Continuous of TimePoint.T<'v> * TimePoint.T<'v>
-       
-    let makeInstantaneous p =
-        Instantaneous p
+    type T<'v> = | TimeSegment of Segment.T<DateTimeOffset,'v option>
+    
+    let makeInstantaneous (TimePoint.TimePoint p) = TimeSegment (Segment.makeInstantaneous p)
+    let makeDiscrete (i,v) = TimeSegment (Segment.makeDiscrete (i,v))
+    let makeContinuous (TimePoint.TimePoint p1,TimePoint.TimePoint p2) = TimeSegment (Segment.makeContinuous (p1,p2))
 
-    let emptyInstantaneous t =
-        Instantaneous (TimePoint.empty t)
+    let emptyInstantaneous t = makeInstantaneous (TimePoint.empty t)
+    let emptyDiscrete interval = makeDiscrete (interval,None)
+    let emptyContinuous interval = makeContinuous (TimePoint.empty (Interval.left interval), TimePoint.empty (Interval.right interval))
 
-    let makeDiscrete (interval,value) =
-        Discrete (interval,value)
+    let startPoint (TimeSegment s) = Segment.startPoint s
+    let startTime (TimeSegment s) = Segment.startX s
+    let startValue (TimeSegment s) = Segment.startY s
 
-    let emptyDiscrete interval =
-        Discrete (interval,None)
+    let endPoint (TimeSegment s) = Segment.endPoint s
+    let endTime (TimeSegment s) = Segment.endX s
+    let endValue (TimeSegment s) = Segment.endY s
 
-    let makeContinuous (p1,p2) =
-        Continuous (p1,p2)
+    let range (TimeSegment s) = Segment.range s
+    let isInRange intervalType t s = Interval.Time.isIn intervalType t (range s) 
+    let domain (TimeSegment s) = Segment.domain s
+    let isInDomain intervalType v s = Interval.Value.isIn intervalType (domain s) v
+    let isFlatDomain (TimeSegment s) = Segment.isFlat s
 
-    let emptyContinuous interval =
-        Continuous (Interval.left interval |> TimePoint.empty, Interval.right interval |> TimePoint.empty)
+    let deltaTime s = Interval.Time.delta (range s) 
+    let duration timeUnitF s = deltaTime s |> timeUnitF
 
-    let startPoint = function
-        | Instantaneous p -> p
-        | Discrete (interval,value) -> TimePoint.make(Interval.left interval,value) 
-        | Continuous (p,_) -> p
+    let lift f (TimeSegment s) = TimeSegment (f s)
+    let lift2 f (TimeSegment s1) (TimeSegment s2) = TimeSegment (f s1 s2)
+    let toSegment (TimeSegment s) = s
+    let unlift f = (TimeSegment >> f >> toSegment)
 
-    let endPoint = function
-        | Instantaneous p -> p
-        | Discrete (interval,value) -> TimePoint.make(Interval.right interval,value) 
-        | Continuous (_,p) -> p      
-
-    let startTime = function
-        | Instantaneous p -> p.Time
-        | Discrete (interval,_) -> Interval.left interval 
-        | Continuous (p,_) -> p.Time
-
-    let startValue = function
-        | Instantaneous p -> p.Value
-        | Discrete (_,value) -> value 
-        | Continuous (p,_) -> p.Value
-
-    let endTime = function
-        | Instantaneous p -> p.Time
-        | Discrete (interval,_) -> Interval.right interval 
-        | Continuous (_,p) -> p.Time
-
-    let endValue = function
-        | Instantaneous p -> p.Value
-        | Discrete (_,value) -> value 
-        | Continuous (_,p) -> p.Value
-
-    let range = function
-        | Instantaneous p -> Interval.Time.make(p.Time,p.Time)
-        | Discrete (inverval,_) -> inverval 
-        | Continuous (p1,p2) -> Interval.Time.make(p1.Time,p2.Time)
-
-    let domain = function
-        | Instantaneous p -> Interval.Value.make(p.Value,p.Value)
-        | Discrete (_,value) -> Interval.Value.make(value,value) 
-        | Continuous (p1,p2) -> Interval.Value.make(p1.Value,p2.Value)
-
-    let isTimeInRange intervalType t s =
-        Interval.Time.isIn intervalType t (range s) 
-
-    let isValueInDomain intervalType value s = 
-        Interval.Value.isIn intervalType (domain s) value
-
-    let isFlat s =
-        startValue s = endValue s
-
-    let deltaTime s = 
-        Interval.Time.delta (range s) 
-
-    let duration timeUnitF s = 
-        deltaTime s |> timeUnitF
-
-    let apply op (s1:T<'a>) (s2:T<'b>) = 
-        match s1, s2 with
-        | Instantaneous p1, Instantaneous p2 when p1.Time = p2.Time -> 
-                makeInstantaneous <| TimePoint.make(p1.Time, op p1.Value p2.Value)
-        | Discrete (interval, v1), Discrete(interval2, v2) when interval = interval2 ->
-                makeDiscrete(interval, op v1 v2)
-        | Continuous (p1, p1'), Continuous (p2, p2') when p1.Time = p2.Time && p1'.Time = p2'.Time -> 
-                makeContinuous (TimePoint.make(p1.Time, op p1.Value p2.Value), TimePoint.make(p1'.Time, op p1'.Value p2'.Value))
-        | _ -> invalidArg "s2" "Time segments must be consistent with respect to time"
-           
-    let inline map (f: TimePoint.T<'v> * TimePoint.T<'v> -> TimePoint.T<'u> * TimePoint.T<'u>) (s:T<'v>) =
-        let p1,p2 = f (startPoint s, endPoint s)
-        match s with
-        | Instantaneous _ -> makeInstantaneous p1
-        | Discrete _ -> makeDiscrete (Interval.Time.make(p1.Time,p2.Time), p1.Value) 
-        | Continuous _ -> makeContinuous (p1,p2)
-
-    let inline mapValue f = function
-        | Instantaneous p -> makeInstantaneous (TimePoint.mapValue f p)
-        | Discrete (interval, value) as s -> makeDiscrete (interval, (TimePoint.mapValue f (startPoint s)).Value) 
-        | Continuous _ as s-> makeContinuous (TimePoint.mapValue f (startPoint s), TimePoint.mapValue f (endPoint s))
-
-    let fold<'v,'State> (f : 'State -> TimePoint.T<'v> * TimePoint.T<'v> -> 'State) (state: 'State) (s:T<'v>) =
-        let f = OptimizedClosures.FSharpFunc<_,_,_>.Adapt(f)
-        f.Invoke(state,(startPoint s, endPoint s))
-
+    let mapTime f (TimeSegment s) = TimeSegment (Segment.mapX f s)
+    let mapValue f (TimeSegment s) = TimeSegment (Segment.mapY f s)
+    let mapValue2 f (TimeSegment s1) (TimeSegment s2) = Segment.mapY2 f s1 s2
+   
     let interpolateValue<[<Measure>]'u> (time:DateTimeOffset) (s:T<float<'u>>) =
         match startValue s, endValue s with
         | Some y0, Some y1 ->
@@ -125,8 +58,8 @@ module TimeSegment =
         | _ -> None 
 
     let interpolateTime value (s:T<float<'u>>) = 
-        if isValueInDomain IntervalType.T.Closed (Some value) s then
-            if isFlat s then
+        if isInDomain IntervalType.T.Closed (Some value) s then
+            if isFlatDomain s then
                 Some (startTime s)
             else
                 let startX = float (startTime s).Ticks
@@ -152,50 +85,33 @@ module TimeSegment =
                 Some(TimePoint.make(time, Some value)))
         | _ -> None
          
-    let tryFindValue interpolateF intervalType (t:DateTimeOffset) s =    
+    let tryFindValue segmentInterpolateF intervalType (t:DateTimeOffset) ((TimeSegment s) as segment) =   
         let interpolate = function
-            | Instantaneous p -> p.Value
-            | Discrete (_,value) -> value 
-            | Continuous (p1,p2) -> 
-                match interpolateF with
-                | Some f -> f t s
-                | None -> startValue s
-        if isTimeInRange intervalType t s 
+            | Segment.Instantaneous p -> p.Y
+            | Segment.Discrete (_,value) -> value 
+            | Segment.Continuous (p1,p2) -> 
+                match segmentInterpolateF with
+                | Some f -> f t segment
+                | None -> startValue segment
+        if isInRange intervalType t segment 
         then interpolate s
         else None
 
-    let (|OverlapStart|OverlapEnd|Overlap|Internal|External|) (interval,segment) =
-         let iStart, iEnd = Interval.left interval, Interval.right interval
-         let segStart, segEnd = startTime segment, endTime segment
-         if segEnd <= iStart || segStart >= iEnd
-         then External segment
-         elif segStart >= iStart && segEnd <= iEnd
-         then Internal segment
-         elif segStart < iStart && segEnd <= iEnd
-         then OverlapStart (iStart,segment)
-         elif segStart >= iStart && segEnd > iEnd
-         then OverlapEnd (iEnd, segment)
-         else Overlap (iStart, iEnd, segment)
-
     /// Returns true if the predicate applied to either the start point or the
     /// end point returns true, otherwise false
-    let exists p s =
-        (startPoint >> p) s || (endPoint >> p) s
+    let exists pred (TimeSegment s) = Segment.exists pred s
 
     /// Returns true if the predicate applied to both the start point and the 
     /// end point returns true, otherwise false
-    let forall p s =
-        (startPoint >> p) s && (endPoint >> p) s
+    let forall pred (TimeSegment s) = Segment.forall pred s
 
     /// Returns true if the predicate applied to either the start value or the
     /// end value returns true, otherwise false
-    let existsValue p s =
-        exists (TimePoint.value >> p) s 
+    let existsValue pred (TimeSegment s) = Segment.existsY pred s 
 
     /// Returns true if the predicate applied to both the start value and the
     /// end value returns true, otherwise false
-    let forallValue p s =
-        forall (TimePoint.value >> p) s
+    let forallValue pred s = Segment.forallY pred s
 
     let volume timeUnitF (s:T<float<'u>>) =
         Option.maybe {
@@ -204,4 +120,3 @@ module TimeSegment =
             let duration = duration timeUnitF s 
             return (startValue + endValue) / 2.0 * duration
         }
-

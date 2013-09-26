@@ -1,45 +1,24 @@
 ﻿namespace FSharp.Enterprise
 
-open System
-open OptionOperators
-
 #if INTERACTIVE
 open FSharp.Enterprise
 #endif
 
 module TimePoint =
 
-    type T<'v> = { 
-        Time:DateTimeOffset
-        Value:Option<'v> 
-    }
+    open System
 
-    let make (time,value) = 
-        { Time = time; Value = value }
-
-    let makeMany times values =
-        Seq.zip times values |> Seq.map make
-       
-    let empty time : T<'v> = 
-        make (time, None)
-       
-    let time point = 
-        point.Time
-       
-    let value point = 
-        point.Value
-                      
-    let inline map (f: DateTimeOffset * Option<'v> -> DateTimeOffset * Option<'u>) (point:T<'v>) =
-        f (time point, value point) |> make
-          
-    let inline mapValue f (point:T<'v>) =
-        make (time point, value point |> Option.map f)
-
-    let inline mapTime f (point:T<'v>) =
-        make (time point |> f, value point)
-
-    let fold<'v,'State> (f : 'State -> DateTimeOffset * Option<'v> -> 'State) (acc: 'State) (point:T<'v>) =
-        let f = OptimizedClosures.FSharpFunc<_,_,_>.Adapt(f)
-        let mutable state = acc 
-        state <- f.Invoke(state,(time point, value point))
-        state
+    type T<'v> = 
+        | TimePoint of Point.T<DateTimeOffset,'v option>
+        with
+            member x.Time = match x with | TimePoint p -> p.X
+            member x.Value = match x with | TimePoint p -> p.Y
+    
+    let make (x,y) = TimePoint (Point.make (x,y))
+    let empty t = TimePoint (Point.make(t,None))    
+    let time (TimePoint p) = p.X
+    let value (TimePoint p) = p.Y
+    let mapTime f (TimePoint p) = TimePoint (Point.mapX f p)
+    let mapValue f (TimePoint p) = TimePoint (Point.mapY f p)
+    let lift f (TimePoint p) = TimePoint (f p)
+    let lift2 f (TimePoint p1) (TimePoint p2) = TimePoint (f p1 p2)

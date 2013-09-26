@@ -2,280 +2,111 @@
 
 module TimeLine =
     
-    open System.Runtime.Serialization     
+    open FSharp.Enterprise.OptionOperators
     open FSharpx
     open FSharpx.Option
-    open FSharp.Enterprise.OptionOperators
+    open System    
+    open System.Runtime.Serialization     
 
-    type LineType =
-        | InstantaneousSegments
-        | DiscreteSegments of IntervalType.T
-        | ContinuousSegments
+    type T<'v> = 
+        | TimeLine of Line.T<DateTimeOffset,'v option>
+        with
+            member x.Type = match x with | TimeLine l -> l.Type
+            member x.Segments = match x with | TimeLine l -> l.Segments
 
-    type T<'v> = {
-        Type : LineType
-        Segments : TimeSegment.T<'v> array
-    }
+    let makeInstantaneous points = TimeLine (Line.makeInstantaneous (points |> Seq.map (fun (TimePoint.TimePoint p) -> p)))
+    let makeDiscrete intervalType points = TimeLine (Line.makeDiscrete intervalType (points |> Seq.map (fun (TimePoint.TimePoint p) -> p)))
+    let makeContinuous points = TimeLine (Line.makeContinuous (points |> Seq.map (fun (TimePoint.TimePoint p) -> p)))
 
-    let inline checkLineType argName ``type`` line = 
-        if line.Type <> ``type`` then
-            let message = sprintf "invalid line type: expected %A but was %A" ``type`` line.Type
-            invalidArg argName message
-                                
-    let make lineType points =
-        let segments =
-            match lineType with
-            | InstantaneousSegments ->
-                points 
-                |> Seq.map TimeSegment.makeInstantaneous 
-                |> Seq.toArray
-            | DiscreteSegments _ ->
-                if Seq.length points = 1 then
-                    let p = Seq.head points
-                    [| TimeSegment.makeDiscrete (Interval.Time.make(p.Time,p.Time), p.Value) |]
-                else
-                    Seq.pairwise points
-                    |> Seq.map (fun (p1,p2) -> TimeSegment.makeDiscrete (Interval.Time.make(p1.Time,p2.Time), p1.Value))
-                    |> Seq.toArray
-            | ContinuousSegments _ ->
-                if Seq.length points = 1 then
-                    let p = Seq.head points
-                    [| TimeSegment.makeContinuous (p,p) |]
-                else             
-                    Seq.pairwise points
-                    |> Seq.map TimeSegment.makeContinuous 
-                    |> Seq.toArray
-        { Type = lineType; Segments = segments }
+    let makeFromSegments lineType segments = TimeLine (Line.makeFromSegments lineType (Array.map TimeSegment.toSegment segments))
 
-    let empty ``type`` : T<'v> =
-        let segments = [||]
-        { Type = ``type``; Segments = segments }
+    let emptyInstantaneous () = TimeLine (Line.emptyInstantaneous ())
+    let emptyDiscrete intervalType = TimeLine (Line.emptyDiscrete intervalType)
+    let emptyContinuous () = TimeLine (Line.emptyContinuous ())
+    let isEmpty (TimeLine l) = Line.isEmpty l
+    
+    let startSegment (TimeLine l) = TimeSegment.TimeSegment <!> Line.startSegment l
+    let startPoint (TimeLine l) = TimePoint.TimePoint <!> Line.startPoint l
+    let startTime (TimeLine l) = Line.startX l
+    let startTimes (TimeLine l) = Line.startXs l
+    let startValue (TimeLine l) = Line.startY l
 
-    let makeInstantaneous points = make LineType.InstantaneousSegments points
-    let emptyInstantaneous () = empty LineType.InstantaneousSegments
+    let endSegment (TimeLine l) = TimeSegment.TimeSegment <!> Line.endSegment l            
+    let endPoint (TimeLine l) = TimePoint.TimePoint <!> Line.endPoint l
+    let endTime (TimeLine l) = Line.endX l
+    let endTimes (TimeLine l) = Line.endXs l
+    let endValue (TimeLine l) = Line.endY l
 
-    let makeDiscrete intervalType points = make (LineType.DiscreteSegments intervalType) points
-    let makeDiscreteFromSegments intervalType segments = 
-        { Type = DiscreteSegments intervalType; Segments = segments }
-    let emptyDiscrete intervalType = empty (LineType.DiscreteSegments intervalType)
+    let range (TimeLine l) = Line.range l
+    let times (TimeLine l) = Line.xs l
 
-    let makeContinuous points = make LineType.ContinuousSegments points
-    let makeContinuousFromSegments intervalType segments = 
-        { Type = ContinuousSegments; Segments = segments }
-    let emptyContinuous () = empty LineType.InstantaneousSegments
+    let map f (TimeLine l) = TimeLine (Line.map (TimeSegment.unlift f) l)
+    let map2 f (TimeLine l1) (TimeLine l2) = TimeLine (Line.map2 f l1 l2)
+    let mapValue f (TimeLine l) = TimeLine (Line.mapY f l)
 
-    let isEmpty line =
-        line.Segments.Length = 0
-
-    let segmentIntervalType line = 
-        match line.Type with
-        | InstantaneousSegments 
-        | ContinuousSegments -> IntervalType.T.Closed
-        | DiscreteSegments intervalType -> intervalType
-
-    let segments (line:T<_>) =
-        line.Segments
-
-    let segmentCount (line:T<'v>) =
-        line.Segments.Length
-
-    let startSegment line =
-        if segmentCount line > 0 
-        then Some line.Segments.[0]
-        else None
-            
-    let startPoint line =
-        line |> startSegment |> Option.map TimeSegment.startPoint
-
-    let endSegment line =
-        if segmentCount line > 0 
-        then Some line.Segments.[(segmentCount line) - 1]
-        else None
-            
-    let endPoint line =
-        line |> endSegment |> Option.map TimeSegment.endPoint
-
-    let startTime line = 
-        line |> startPoint |> Option.map TimePoint.time
-
-    let startValue line = 
-        line |> startPoint |> Option.getOrElseWith None TimePoint.value
-
-    let endTime line = 
-        line |> endPoint |> Option.map TimePoint.time
-
-    let endValue line = 
-        line |> endPoint |> Option.getOrElseWith None TimePoint.value
-
-    let ofInterval lineType interval  =
-        let segments =
-            match lineType with
-            | InstantaneousSegments -> [| TimeSegment.emptyInstantaneous (Interval.left interval) |]
-            | DiscreteSegments _ -> [| TimeSegment.emptyDiscrete interval |]
-            | ContinuousSegments _ -> [| TimeSegment.emptyContinuous interval |]
-        { Type = lineType; Segments = segments }
-
-    let range line =
-        (fun t1 t2 -> Interval.make(t1,t2)) <!> startTime line <*> endTime line
-
-    let inline map (f: TimeSegment.T<'v> -> TimeSegment.T<'u>) (line:T<'v>) =
-        let segments = Array.map f line.Segments
-        { Type = line.Type; Segments = segments }   
-
-    let inline map2 (f: TimeSegment.T<'a> -> TimeSegment.T<'v> -> TimeSegment.T<'u>) (l1:T<'a>) (l2:T<'v>) =
-        if l1.Type <> l2.Type then (invalidArg "l2" "line types differ")
-        let segments = Array.map2 f l1.Segments l2.Segments
-        { Type = l1.Type; Segments = segments }   
-
-    let inline mapValue f (line:T<'v>) : T<'w> =
-        let segments = Array.map (TimeSegment.mapValue f) line.Segments 
-        { Type = line.Type; Segments = segments }   
-
-    let fold<'v,'State> f (acc:'State) (line:T<'v>) =
-        Array.fold f acc line.Segments 
-
-    let inline sumBy f line =
-        fold (fun state segment -> f segment |> Option.accumulate state) None line
+    let fold f state (TimeLine l) = Line.fold (fun state s -> f state (TimeSegment.TimeSegment s)) state l
+    let inline sumBy f (TimeLine l) = Line.sumBy (TimeSegment.TimeSegment >> f) l
 
     /// Returns true if the predicate applied to any segments returns true, otherwise false.
-    let exists p line =
-        Array.exists p line.Segments
+    let exists pred (TimeLine l) = Line.exists pred l
 
     /// Returns true if the predicate applied to all segments returns true, otherwise false.
-    let forall p line =
-        Array.forall p line.Segments
+    let forall pred (TimeLine l) = Line.forall pred l
 
     /// Returns true if the predicate applied to any segments returns true, otherwise false.
-    let existsPoint p line =
-        exists (TimeSegment.exists p) line 
+    let existsPoint pred (TimeLine l) = Line.existsPoint pred l
 
     /// Returns true if the predicate applied to all segments returns true, otherwise false.
-    let forallPoint p line =
-        forall (TimeSegment.forall p) line
+    let forallPoint pred (TimeLine l) = Line.forallPoint pred l
 
     /// Returns true if the predicate applied to any segments returns true, otherwise false.
-    let existsValue p line =
-        exists (TimeSegment.existsValue p) line 
+    let existsValue pred (TimeLine l) = Line.existsY pred l
 
     /// Returns true if the predicate applied to all segments returns true, otherwise false.
-    let forallValue p line =
-        forall (TimeSegment.forallValue p) line
+    let forallValue pred (TimeLine l) = Line.forallY pred l
 
-    let tryPick (chooser: TimeSegment.T<'v> -> 'u option) (line:T<'v>) =
-        Array.tryPick chooser line.Segments
+    let tryPick chooser (TimeLine l) = Line.tryPick chooser l
 
-    let endTimes line =
-        line 
-        |> fold (fun s segment -> TimeSegment.endTime segment :: s) []
-        |> List.rev
+    let tryFindSegment time (TimeLine l) = Line.tryFindSegment time l        
 
-    let startTimes line =
-        line 
-        |> fold (fun s segment -> TimeSegment.startTime segment :: s) []
-        |> List.rev
-
-    let times line =
-        match line.Type with
-        | LineType.InstantaneousSegments -> startTimes line
-        | _ -> 
-            match startTime line with
-            | Some startTime -> startTime :: endTimes line
-            | _ -> []
-
-    let tryFindSegment time line =        
-        Array.tryFind (TimeSegment.isTimeInRange (segmentIntervalType line) time) line.Segments
-
-    let intersections line1 line2 =
+    let intersections (TimeLine l1) (TimeLine l2) =
         [|
-            for line1Segment in line1.Segments do
-                for line2Segment in line2.Segments do
-                    match TimeSegment.intersection line1Segment line2Segment with
+            for s1 in l1.Segments do
+                for s2 in l2.Segments do
+                    match TimeSegment.intersection (TimeSegment.TimeSegment s1) (TimeSegment.TimeSegment s2) with
                     | Some point -> yield point
                     | None -> ()
         |]
 
-    let volume timeUnitF line =
-        Array.choose (TimeSegment.volume timeUnitF) line.Segments |> Array.sum
+    let volume timeUnitF (TimeLine l) =
+        Array.choose (TimeSegment.TimeSegment >> TimeSegment.volume timeUnitF) l.Segments 
+        |> Array.sum
 
-    let tryFindValue segmentInterpolateF time (line:T<'v>) =            
-        Array.tryPick (TimeSegment.tryFindValue segmentInterpolateF (segmentIntervalType line) time) line.Segments
+    let tryFindValue segmentInterpolateF time (TimeLine l) =            
+        Array.tryPick (TimeSegment.TimeSegment >> TimeSegment.tryFindValue segmentInterpolateF (Line.segmentIntervalType l) time) l.Segments
 
-    let tryFindValues segmentInterpolateF time (line:T<'v>) =
-        Array.choose (TimeSegment.tryFindValue segmentInterpolateF (segmentIntervalType line) time) line.Segments
+    let tryFindValues segmentInterpolateF time (TimeLine l) =
+        Array.choose (TimeSegment.TimeSegment >> TimeSegment.tryFindValue segmentInterpolateF (Line.segmentIntervalType l) time) l.Segments
 
     /// Returns true if the predicate applied to the value at time t returns true, otherwise false.
     let isValueAtTime segmentInterpolateF t p line : bool =
         (tryFindValue segmentInterpolateF t >> p) line
 
-    let toSeq segmentInterpolateF timeSpan (line:T<float<'u>>) =
+    let toSeq segmentInterpolateF timeSpan line =
         range line
         |> Option.getOrElseWith Seq.empty (fun interval ->
             Interval.Time.toSeq IntervalType.T.Closed timeSpan interval
             |> Seq.map (fun time -> tryFindValue segmentInterpolateF time line))
 
-    let toPoints line =
-        match line.Type with
-        | InstantaneousSegments -> 
-            Array.fold (fun points segment -> TimeSegment.startPoint segment :: points) [] line.Segments
-        | DiscreteSegments _
-        | ContinuousSegments _ ->
-            match endPoint line with
-            | Some endPoint ->
-                let startPoints = Array.fold (fun points segment -> TimeSegment.startPoint segment :: points) [] line.Segments
-                endPoint :: startPoints
-            | None -> []
-        |> List.rev
+    let toPoints (TimeLine l) = Line.toPoints l |> List.map TimePoint.TimePoint
 
-    let slice segmentInterpolateF interval line =
-        let segments = 
-            match line.Type with
-            | InstantaneousSegments ->
-                Array.filter (fun segment -> Interval.Time.isIn IntervalType.T.Closed (TimeSegment.startTime segment) interval) line.Segments
-            | DiscreteSegments _ ->
-                line.Segments
-                |> Array.choose (fun seg -> 
-                    match (interval, seg) with
-                    | TimeSegment.Overlap (iStart, iEnd, seg) ->
-                        Some (TimeSegment.makeDiscrete (interval, TimeSegment.startValue seg))
-                    | TimeSegment.Internal seg -> 
-                        Some(seg)
-                    | TimeSegment.External seg -> 
-                        None
-                    | TimeSegment.OverlapStart (dt,seg) ->
-                        Some (TimeSegment.map (fun (s,e) -> TimePoint.mapTime (fun _ -> dt) s, e) seg)
-                    | TimeSegment.OverlapEnd (dt,seg) ->
-                        Some (TimeSegment.map (fun (s,e) -> s, TimePoint.map (fun (_,_) -> dt,s.Value) e) seg))
-            | ContinuousSegments _ ->
-                line.Segments
-                |> Array.choose (fun seg -> 
-                    match (interval, seg) with
-                    | TimeSegment.Overlap (iStart, iEnd, seg) ->
-                        Some (TimeSegment.map (fun (s,e) -> 
-                                    TimePoint.map (fun _ -> iStart, (Option.get segmentInterpolateF) iStart seg) s, 
-                                    TimePoint.map (fun _ -> iEnd, (Option.get segmentInterpolateF) iEnd seg) e) seg)
-                    | TimeSegment.Internal seg -> 
-                        Some(seg)
-                    | TimeSegment.External seg -> 
-                        None
-                    | TimeSegment.OverlapStart (dt,seg) ->
-                        Some (TimeSegment.map (fun (s,e) -> TimePoint.map (fun _ -> dt, (Option.get segmentInterpolateF) dt seg) s, e) seg)
-                    | TimeSegment.OverlapEnd (dt,seg) ->
-                        Some (TimeSegment.map (fun (s,e) -> s, TimePoint.map (fun _ -> dt, (Option.get segmentInterpolateF) dt seg) e) seg))
-        { Type = line.Type; Segments = segments}
+    let slice segmentInterpolateF interval (TimeLine l) =
+        let f = Option.map (fun f -> (fun t s -> f t (TimeSegment.TimeSegment s))) segmentInterpolateF
+        TimeLine (Line.slice f interval l)
 
-    let append (line1:T<float<'u>>) (line2:T<float<'u>>) =
-        //checkLineType "line1" LineType.ContinuousSegments line1
-        //checkLineType "line2" LineType.ContinuousSegments line2
-        match startTime line1, startTime line2 with
-        | Some startTime, Some endTime ->             
-            let interval = Interval.Time.make(startTime, endTime)
-            let line1Slice = slice (Some TimeSegment.interpolateValue) interval line1
-            let segments = Array.append line1Slice.Segments line2.Segments
-            { Type = line1.Type; Segments = segments}
-        | None, Some _ ->
-            line2
-        | _ ->
-            line1
+    let append segmentInterpolateF (TimeLine l1) (TimeLine l2) = 
+        let f = Option.map (fun f -> (fun t s -> f t (TimeSegment.TimeSegment s))) segmentInterpolateF
+        TimeLine (Line.append f l1 l2)
 
     let isPointOnLine point line =
         //checkLineType "line" LineType.ContinuousSegments line
@@ -285,3 +116,11 @@ module TimeLine =
             | Some lineValue -> value = lineValue
             | None -> false                        
         | _ -> false
+
+    let ofInterval lineType interval  =
+        let segments =
+            match lineType with
+            | Line.InstantaneousSegments -> [| TimeSegment.emptyInstantaneous (Interval.left interval) |]
+            | Line.DiscreteSegments _ -> [| TimeSegment.emptyDiscrete interval |]
+            | Line.ContinuousSegments _ -> [| TimeSegment.emptyContinuous interval |]
+        makeFromSegments lineType segments

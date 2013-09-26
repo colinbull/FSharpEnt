@@ -62,6 +62,9 @@ module Interval =
         then interval 
         else flip interval
 
+    let isIn t n (interval) = 
+        (order (<=) >> contains (>=) (>) (<=) (<) n t) interval 
+
     let map f (interval:T<_>) : T<_> = 
         make <| f (left interval, right interval) 
 

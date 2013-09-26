@@ -45,6 +45,9 @@
     <Compile Include="Math.fs" />
     <Compile Include="LookUp.fs" />
     <Compile Include="Interval.fs" />
+    <Compile Include="Point.fs" />
+    <Compile Include="Segment.fs" />
+    <Compile Include="Line.fs" />
     <Compile Include="TimePoint.fs" />
     <Compile Include="TimeSegment.fs" />
     <Compile Include="TimeLine.fs" />
@@ -63,6 +66,7 @@
     <Compile Include="Security.fs" />
     <Compile Include="IO.fs" />
     <Compile Include="FileSystem.fs" />
+    <None Include="Script.fsx" />
     <None Include="packages.config" />
     <Compile Include="AssemblyInfo.fs" />
   </ItemGroup>
