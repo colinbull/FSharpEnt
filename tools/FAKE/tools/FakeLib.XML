@@ -3192,6 +3192,9 @@
 <member name="">
 
 </member>
+<member name="">
+
+</member>
 <member name="M:Fake.NUnitHelper.NUnit(Microsoft.FSharp.Core.FSharpFunc{Fake.NUnitHelper.NUnitParams,Fake.NUnitHelper.NUnitParams},System.Collections.Generic.IEnumerable{System.String})">
 <summary>
  Run NUnit on a group of assemblies.
@@ -4104,14 +4107,20 @@ returns the exit code
 <member name="">
 
 </member>
-<member name="">
-
+<member name="M:Fake.RestorePackageHelper.RestorePackages">
+<summary>
+ Restores all packages from NuGet to the default directories
+</summary>
 </member>
-<member name="">
-
+<member name="M:Fake.RestorePackageHelper.RestorePackage(Microsoft.FSharp.Core.FSharpFunc{Fake.RestorePackageHelper.RestorePackageParams,Fake.RestorePackageHelper.RestorePackageParams},System.String)">
+<summary>
+ Restores the given package from NuGet
+</summary>
 </member>
-<member name="">
-
+<member name="M:Fake.RestorePackageHelper.RestorePackageId(Microsoft.FSharp.Core.FSharpFunc{Fake.RestorePackageHelper.RestoreSinglePackageParams,Fake.RestorePackageHelper.RestoreSinglePackageParams},System.String)">
+<summary>
+ Restores the given package from NuGet
+</summary>
 </member>
 <member name="">
 
@@ -4187,6 +4196,9 @@ returns the exit code
 
 </member>
 <member name="T:Fake.ServiceControllerHelpers">
+
+</member>
+<member name="">
 
 </member>
 <member name="">

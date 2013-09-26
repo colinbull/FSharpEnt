@@ -14,7 +14,8 @@ module Option =
         else
             value
 
-
+    let inline (<&>) f m = 
+        Option.map (fun f' -> f' m) f
 
 module OptionOperators =
 
