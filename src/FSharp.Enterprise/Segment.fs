@@ -17,6 +17,10 @@ module Segment =
     let makeDiscrete (i,v) = Discrete (i,v)
     let makeContinuous (p1,p2) = Continuous (p1,p2)
 
+    let emptyInstantaneous x = Instantaneous (Point.empty x)
+    let emptyDiscrete i = Discrete (i,Unchecked.defaultof<'y>)
+    let emptyContinuous i = Continuous (Point.empty (Interval.left i),Point.empty (Interval.right i))
+
     let startPoint = function
         | Instantaneous p -> p
         | Discrete (i,v) -> Point.make(Interval.left i,v) 
@@ -63,6 +67,9 @@ module Segment =
     let isInDomain intervalType y s =
         domain s |> Interval.isIn intervalType y 
 
+    let isFlatDomain s =
+        startY s = endY s
+
     let map f = function 
         | Instantaneous p -> makeInstantaneous (fst (f (p,p)))
         | Discrete _ as s -> f (startPoint s, endPoint s) |> (fun (p1,p2:Point.T<'a,'b>) -> makeDiscrete (Interval.make(p1.X,p2.X),p1.Y)) 
@@ -104,9 +111,6 @@ module Segment =
          then OverlapEnd (iEnd, segment)
          else Overlap (iStart, iEnd, segment)
 
-    let isFlat s =
-        startY s = endY s
-
     let inline interpolateY x s =
         if isInRange IntervalType.T.Closed x s then
             let x0,y0 = startPoint s |> fun p -> p.X, p.Y 
@@ -118,7 +122,7 @@ module Segment =
 
     let inline interpolateX y s = 
         if isInDomain IntervalType.T.Closed y s then
-            if isFlat s then
+            if isFlatDomain s then
                 Some (startX s)
             else
                 let x0,y0 = startPoint s |> fun p -> p.X, p.Y
@@ -167,3 +171,62 @@ module Segment =
     /// end value returns true, otherwise false
     let forallY pred s =
         forall (Point.y >> pred) s
+
+    module Time =
+
+        open System
+
+        type T<'v> = T<DateTimeOffset,'v option>
+
+        let deltaTime s = Interval.Time.delta (range s)
+        let duration timeUnitF s = deltaTime s |> timeUnitF
+
+        let tryFindValue segmentInterpolateF intervalType (t:DateTimeOffset) s =   
+            let interpolate = function
+                | Instantaneous p -> p.Y
+                | Discrete (_,value) -> value 
+                | Continuous (p1,p2) -> 
+                    match segmentInterpolateF with
+                    | Some f -> f t s
+                    | None -> startY s
+            if isInRange intervalType t s 
+            then interpolate s
+            else None
+
+        let interpolateValue<[<Measure>]'u> (time:DateTimeOffset) (s:T<float<'u>>) =
+            match startY s, endY s with
+            | Some y0, Some y1 ->
+                let startX = float (startX s).Ticks
+                let endX = float (endX s).Ticks
+                let x = float time.Ticks
+                let y = Math.Interpolation.linear x startX y0 endX y1
+                Some y
+            | _ -> None 
+
+        let interpolateTime value (s:T<float<'u>>) = 
+            if isInDomain IntervalType.T.Closed (Some value) s then
+                if isFlatDomain s then
+                    Some (startX s)
+                else
+                    let x0 = float (startX s).Ticks
+                    let x1 = float (endX s).Ticks
+                    let y0 = Option.get (startY s)
+                    let y1 = Option.get (endY s) 
+                    let x = Math.Interpolation.linear value y0 x0 y1 x1
+                    Some (DateTimeOffset(int64 x, (startX s).Offset))
+            else
+                None                     
+
+        let intersection<[<Measure>]'u> (s1:T<float<'u>>) (s2:T<float<'u>>) : Point.Time.T<float<'u>> option=
+            match startY s1, endY s1, startY s2, endY s2 with
+            | Some y0, Some y1, Some y2, Some y3 ->
+                let x0 = float (startX s1).Ticks
+                let x1 = float (endX s1).Ticks
+                let x2 = float (startX s2).Ticks
+                let x3 = float (endX s2).Ticks
+                Math.intersection x0 (float y0) x1 (float y1) x2 (float y2) x3 (float y3)
+                |> Option.getOrElseWith None (fun (t,v) ->
+                    let time = DateTimeOffset(int64 t, (startX s1).Offset)
+                    let value = LanguagePrimitives.FloatWithMeasure<'u> v 
+                    Some(Point.make(time, Some value)))
+            | _ -> None

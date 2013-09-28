@@ -48,9 +48,6 @@
     <Compile Include="Point.fs" />
     <Compile Include="Segment.fs" />
     <Compile Include="Line.fs" />
-    <Compile Include="TimePoint.fs" />
-    <Compile Include="TimeSegment.fs" />
-    <Compile Include="TimeLine.fs" />
     <Compile Include="Caching.fs" />
     <Compile Include="RingBuffer.fs" />
     <Compile Include="Timeseries.fs" />

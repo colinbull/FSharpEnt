@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="DateTimeTests.fs" />
     <Compile Include="DateTimeOffsetTests.fs" />
+    <Compile Include="IntervalTests.fs" />
     <Compile Include="GeometryTests.fs" />
     <Compile Include="LookUpTests.fs" />
     <Compile Include="MathTests.fs" />

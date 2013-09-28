@@ -26,8 +26,9 @@ module Line =
             let message = sprintf "invalid line type: expected %A but was %A" ``type`` line.Type
             invalidArg argName message
 
-    let internal makeFromSegments lineType segments =
-        { Type = lineType; Segments = segments }
+    let internal makeFromSegments lineType segments = { Type = lineType; Segments = segments }
+    let makeDiscreteFromSegments intervalType segments = makeFromSegments (DiscreteSegments intervalType) segments
+    let makeContinuousFromSegments segments = makeFromSegments ContinuousSegments segments
                                 
     let make lineType points =             
         let segments =
@@ -54,24 +55,15 @@ module Line =
                     |> Seq.toArray
         makeFromSegments lineType segments
 
-    let empty lineType =
-        makeFromSegments lineType [||]
-
     let makeInstantaneous points = make LineType.InstantaneousSegments points
-    let emptyInstantaneous () = empty LineType.InstantaneousSegments
-
     let makeDiscrete intervalType points = make (LineType.DiscreteSegments intervalType) points
-    let makeDiscreteFromSegments intervalType segments = 
-        { Type = DiscreteSegments intervalType; Segments = segments }
-    let emptyDiscrete intervalType = empty (LineType.DiscreteSegments intervalType)
-
     let makeContinuous points = make LineType.ContinuousSegments points
-    let makeContinuousFromSegments intervalType segments = 
-        { Type = ContinuousSegments; Segments = segments }
-    let emptyContinuous () = empty LineType.ContinuousSegments
 
-    let isEmpty line =
-        line.Segments.Length = 0
+    let empty lineType = makeFromSegments lineType [||]
+    let emptyInstantaneous () = empty LineType.InstantaneousSegments
+    let emptyDiscrete intervalType = empty (LineType.DiscreteSegments intervalType)
+    let emptyContinuous () = empty LineType.ContinuousSegments
+    let isEmpty line = line.Segments.Length = 0
 
     let segmentIntervalType line = 
         match line.Type with
@@ -135,6 +127,24 @@ module Line =
     let inline sumBy f line =
         fold (fun state segment -> f segment |> Option.accumulate state) None line
 
+    let endXs line =
+        line 
+        |> fold (fun s segment -> Segment.endX segment :: s) []
+        |> List.rev
+
+    let startXs line =
+        line 
+        |> fold (fun s segment -> Segment.startX segment :: s) []
+        |> List.rev
+
+    let xs line =
+        match line.Type with
+        | LineType.InstantaneousSegments -> startXs line
+        | _ -> 
+            match startX line with
+            | Some startX -> startX :: endXs line
+            | _ -> []
+
     /// Returns true if the predicate applied to any segments returns true, otherwise false.
     let exists p line =
         Array.exists p line.Segments
@@ -161,25 +171,6 @@ module Line =
 
     let tryPick chooser line =
         Array.tryPick chooser line.Segments
-
-    let endXs line =
-        line 
-        |> fold (fun s segment -> Segment.endX segment :: s) []
-        |> List.rev
-
-    let startXs line =
-        line 
-        |> fold (fun s segment -> Segment.startX segment :: s) []
-        |> List.rev
-
-    let xs line =
-        match line.Type with
-        | LineType.InstantaneousSegments -> startXs line
-        | _ -> 
-            match startX line with
-            | Some startX -> startX :: endXs line
-            | _ -> []
-
 
     let inline intersections l1 l2 =
         [|
@@ -267,3 +258,35 @@ module Line =
             line2
         | _ ->
             line1
+
+    let ofInterval lineType interval  =
+        let segments =
+            match lineType with
+            | InstantaneousSegments -> [| Segment.emptyInstantaneous (Interval.left interval) |]
+            | DiscreteSegments _ -> [| Segment.emptyDiscrete interval |]
+            | ContinuousSegments _ -> [| Segment.emptyContinuous interval |]
+        makeFromSegments lineType segments
+
+    module Time =
+    
+        open System
+
+        type T<'v> = T<DateTimeOffset,'v option>
+
+        let intersections l1 l2 =
+            [|
+                for s1 in l1.Segments do
+                    for s2 in l2.Segments do
+                        match Segment.Time.intersection s1 s2 with
+                        | Some point -> yield point
+                        | None -> ()
+            |]
+
+        let tryFindValue segmentInterpolateF time l =            
+            Array.tryPick (Segment.Time.tryFindValue segmentInterpolateF (segmentIntervalType l) time) l.Segments
+
+        let toSeq segmentInterpolateF timeSpan line =
+            range line
+            |> Option.getOrElseWith Seq.empty (fun interval ->
+                Interval.Time.toSeq IntervalType.T.Closed timeSpan interval
+                |> Seq.map (fun time -> tryFindValue segmentInterpolateF time line))
