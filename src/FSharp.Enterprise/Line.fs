@@ -190,10 +190,6 @@ module Line =
     let tryFindValues segmentInterpolateF x line =
         Array.choose (Segment.tryFindValue segmentInterpolateF (segmentIntervalType line) x) line.Segments
 
-    /// Returns true if the predicate applied to the value at time t returns true, otherwise false.
-    let isValueAtTime segmentInterpolateF t p line : bool =
-        (tryFindValue segmentInterpolateF t >> p) line
-
     let toPoints line =
         match line.Type with
         | InstantaneousSegments -> 
@@ -284,6 +280,10 @@ module Line =
 
         let tryFindValue segmentInterpolateF time l =            
             Array.tryPick (Segment.Time.tryFindValue segmentInterpolateF (segmentIntervalType l) time) l.Segments
+
+        /// Returns true if the predicate applied to the value at time t returns true, otherwise false.
+        let isValueAtTime segmentInterpolateF t p (line:T<'v>) : bool =
+            (tryFindValue segmentInterpolateF t >> p) line
 
         let toSeq segmentInterpolateF timeSpan line =
             range line
