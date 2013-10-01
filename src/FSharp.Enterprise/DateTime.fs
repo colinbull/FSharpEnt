@@ -396,6 +396,21 @@ module DateTimeOffset =
     let ceilDay (d:DateTimeOffset) = d.Ceil(TimeBoundary.Day)
     let floorDay (d:DateTimeOffset) = d.Floor(TimeBoundary.Day)
 
+    /// Returns the halfhours surrounding the given time. 
+    /// When the give time is on the halfhour then if defaultToLowerBound
+    /// is true then the given time is used as the lower bound otherwise
+    /// it is used as the upper bound.
+    let boundingHalfhours defaultToLowerBound (d:DateTimeOffset) =
+        let halfhourStart = floorHalfhour d
+        let halfhourEnd = ceilHalfhour d
+        if halfhourStart = halfhourEnd then
+            if defaultToLowerBound then
+                halfhourStart,halfhourEnd.AddMinutes(30.0)
+            else
+                halfhourStart.AddMinutes(-30.0),halfhourEnd
+        else
+            halfhourStart,halfhourEnd
+
     let computeShortLongHourIndicies (date : DateTimeOffset) (granularity : TimeSpan) = 
         let toOption (i : int) = if i >= 0 then Some(i) else None
         if granularity.TotalMinutes >= 1440.  //if it at day granularity or bigger we don't have to worry 

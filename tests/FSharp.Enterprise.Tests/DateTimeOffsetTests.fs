@@ -446,3 +446,23 @@ type ``Given a DateTimeOffset`` () =
         8928 |> should equal v.Length
         Array.sub v index.Value 12 |> should equal (Array.init 12 (fun _ -> Nullable<float32>()))    
 
+    [<Test>]
+    member test.``I can find the bounding halfhours for a non-halfhour time``() = 
+        let d = DateTimeOffset(2012, 03, 01, 0, 15, 0, TimeSpan.Zero)
+        let lower,upper = DateTimeOffset.boundingHalfhours true d
+        lower |> should equal (DateTimeOffset(2012, 03, 01, 0, 0, 0, TimeSpan.Zero))
+        upper |> should equal (DateTimeOffset(2012, 03, 01, 0, 30, 0, TimeSpan.Zero))
+
+    [<Test>]
+    member test.``I can find the bounding halfhours for a halfhour time defaulting to lower bound``() = 
+        let d = DateTimeOffset(2012, 03, 01, 0, 0, 0, TimeSpan.Zero)
+        let lower,upper = DateTimeOffset.boundingHalfhours true d
+        lower |> should equal d
+        upper |> should equal (d.AddMinutes(30.0))
+
+    [<Test>]
+    member test.``I can find the bounding halfhours for a halfhour time defaulting to upper bound``() = 
+        let d = DateTimeOffset(2012, 03, 01, 0, 0, 0, TimeSpan.Zero)
+        let lower,upper = DateTimeOffset.boundingHalfhours false d
+        lower |> should equal (d.AddMinutes(-30.0))
+        upper |> should equal d
