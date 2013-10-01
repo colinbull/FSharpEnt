@@ -82,6 +82,9 @@ module Interval =
         let a,b = left i1, right i1
         let c,d = left i2, right i2 
         min (max a b) (max c d) - max (min c d) (min a b)
+
+    let inline delta (interval:T<_>) = 
+        (right interval) - (left interval)
    
     /// Represents an interval between two options of float.
     module Value =

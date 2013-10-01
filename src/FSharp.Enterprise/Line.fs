@@ -263,6 +263,15 @@ module Line =
             | ContinuousSegments _ -> [| Segment.emptyContinuous interval |]
         makeFromSegments lineType segments
 
+
+    let inline area unitF line =
+        Array.map (Segment.area unitF) line.Segments
+        |> Array.sum
+
+    let inline tryArea unitF line =
+        Array.choose (Segment.tryArea unitF) line.Segments
+        |> Array.sum
+
     module Time =
     
         open System
@@ -290,3 +299,5 @@ module Line =
             |> Option.getOrElseWith Seq.empty (fun interval ->
                 Interval.Time.toSeq IntervalType.T.Closed timeSpan interval
                 |> Seq.map (fun time -> tryFindValue segmentInterpolateF time line))
+
+

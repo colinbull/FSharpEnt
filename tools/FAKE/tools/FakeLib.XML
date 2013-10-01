@@ -1329,7 +1329,7 @@
 </member>
 <member name="M:Fake.FileHelper.CopyFile(System.String,System.String)">
  <summary>Copies a single file to the target and overwrites the existing file.</summary>
- <param name="target">The target directory.</param>
+ <param name="target">The target directory or file.</param>
  <param name="fileName">The FileName.</param>
 </member>
 <member name="M:Fake.FileHelper.CopyFileIntoSubFolder(System.String,System.String)">
@@ -2187,6 +2187,11 @@
 <member name="T:Fake.Git.Rebase">
 
 </member>
+<member name="M:Fake.Git.Repository.fullclean(System.String)">
+<summary>Cleans a directory by removing all files and sub-directories.</summary>
+<param name="path">The path of the directory to clean.</param>
+<user/>
+</member>
 <member name="M:Fake.Git.Repository.init(System.String,System.Boolean,System.Boolean)">
 <summary>
  Inits a git repository
@@ -3011,6 +3016,144 @@
 </summary>
 </member>
 <member name="T:Fake.MSpecHelper">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:Fake.MageHelper">
 
 </member>
 <member name="M:Fake.MessageHelper.WaitForMessageFile(System.String,System.TimeSpan)">
@@ -4198,6 +4341,14 @@ returns the exit code
 <member name="T:Fake.ServiceControllerHelpers">
 
 </member>
+<member name="M:Fake.SignHelper.SignTool(System.String,System.String,System.String,System.Collections.Generic.IEnumerable{System.String})">
+ <summary>Signs all files in filesToSign with the certification file certFile, protected with the password in the file passFile. 
+   The signtool will be search in the toolPath.</summary>
+ <user/>
+</member>
+<member name="T:Fake.SignHelper">
+
+</member>
 <member name="">
 
 </member>
@@ -4483,6 +4634,10 @@ returns the exit code
 </member>
 <member name="M:Fake.StringHelper.WriteToFile(System.Boolean,System.String,System.Collections.Generic.IEnumerable{System.String})">
  <summary>Writes a file line by line</summary>
+ <user/>
+</member>
+<member name="M:Fake.StringHelper.ReadLine(System.String)">
+ <summary>Reads the first line of a file. This can be helpful to read a password from file.</summary>
  <user/>
 </member>
 <member name="M:Fake.StringHelper.ReadFile(System.String)">

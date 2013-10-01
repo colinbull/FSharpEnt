@@ -172,6 +172,24 @@ module Segment =
     let forallY pred s =
         forall (Point.y >> pred) s
 
+    let inline delta s = Interval.delta (range s)
+
+    let inline length unitF s = delta s |> unitF
+
+    let inline area unitF (s:T<_,float<'u>>) =
+         let startValue = startY s
+         let endValue = endY s
+         let duration = length unitF s 
+         (startValue + endValue) / 2.0 * duration
+
+    let inline tryArea unitF (s:T<_,float<'u> option>) =
+        Option.maybe { 
+            let! startValue = startY s
+            let! endValue = endY s
+            let duration = length unitF s 
+            return (startValue + endValue) / 2.0 * duration
+         }
+
     module Time =
 
         open System
@@ -179,6 +197,7 @@ module Segment =
         type T<'v> = T<DateTimeOffset,'v option>
 
         let deltaTime s = Interval.Time.delta (range s)
+
         let duration timeUnitF s = deltaTime s |> timeUnitF
 
         let tryFindValue segmentInterpolateF intervalType (t:DateTimeOffset) s =   
