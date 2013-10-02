@@ -356,3 +356,51 @@ type ``Given a double lookup`` () =
         pdtNegative |> LookUp.Double.tryFindInterpolated -0.35<Hz> 450.0<J> |> should equal (Some 57.5<J s>)
         pdtNegative |> LookUp.Double.tryFindInterpolated -0.45<Hz> 450.0<J> |> should equal (Some 58.5<J s>)
 
+    [<Test>]
+    member x.``I can find a value``() =
+        let pdt = 
+            [
+                0.1<Hz>, [  
+                          0.0<J>,   0.0<J s>;
+                        100.0<J>,  10.0<J s>;
+                        200.0<J>,  20.0<J s>;
+                        300.0<J>, 100.0<J s>;
+                        400.0<J>, 150.0<J s>;
+                        500.0<J>, 175.0<J s>
+                    ];
+                0.2<Hz>, [  
+                          0.0<J>,   0.0<J s>;
+                        100.0<J>,  20.0<J s>;
+                        200.0<J>,  40.0<J s>;
+                        300.0<J>, 200.0<J s>;
+                        400.0<J>, 250.0<J s>;
+                        500.0<J>, 275.0<J s>
+                    ];
+                0.3<Hz>, [  
+                          0.0<J>,   0.0<J s>;
+                        100.0<J>,  30.0<J s>;
+                        200.0<J>,  60.0<J s>;
+                        300.0<J>, 300.0<J s>;
+                        400.0<J>, 350.0<J s>;
+                        500.0<J>, 375.0<J s>
+                    ];
+                0.4<Hz>, [  
+                          0.0<J>,   0.0<J s>;
+                        100.0<J>,  40.0<J s>;
+                        200.0<J>,  80.0<J s>;
+                        300.0<J>, 400.0<J s>;
+                        400.0<J>, 450.0<J s>;
+                        500.0<J>, 475.0<J s>
+                    ];
+                0.5<Hz>, [  
+                          0.0<J>,   0.0<J s>;
+                        100.0<J>,  50.0<J s>;
+                        200.0<J>, 100.0<J s>;
+                        300.0<J>, 500.0<J s>;
+                        400.0<J>, 550.0<J s>;
+                        500.0<J>, 575.0<J s>
+                    ]
+            ] |> LookUp.Double.ofSeq
+        let actual = LookUp.Double.tryFindInterpolated 0.48<Hz> 95.1042<J> pdt
+        let expected = Some 45.65<J s>
+        actual.Value |> should (equalWithin 0.01) expected.Value

@@ -27,8 +27,8 @@ module Net =
     let setUrlAcl port = 
         let cmd, args =
             if Environment.OSVersion.Version.Major > 5
-            then "netsh", String.Format(@"http add urlacl url=http://+:{0}/ user=""{1}""", port, WindowsIdentity.GetCurrent().Name);
-            else "httpcfg", String.Format(@"set urlacl /u http://+:{0}/ /a D:(A;;GX;;;""{1}"")", port, WindowsIdentity.GetCurrent().User);
+            then "netsh", String.Format(@"http add urlacl url=http://*:{0}/ user=""{1}""", port, WindowsIdentity.GetCurrent().Name);
+            else "httpcfg", String.Format(@"set urlacl /u http://*:{0}/ /a D:(A;;GX;;;""{1}"")", port, WindowsIdentity.GetCurrent().User);
         match Process.executeElevated (fun si -> si.Arguments <- args; si.FileName <- cmd) (TimeSpan.FromSeconds(5.)) Process.Silent with
         | 0 -> ()
         | a -> failwithf "Failed to grant rights for listening to http, exit code: %d" a
