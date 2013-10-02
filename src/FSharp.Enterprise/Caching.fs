@@ -50,7 +50,7 @@ module Caching =
                  else false
          }
 
-     let memoizeWithKeyAndExpiry f keyf expiryf (cache:ICache<_,_>) = 
+     let memoizeWithKeyAndExpiry keyf expiryf (cache:ICache<_,_>) f = 
          fun n ->
              let key = keyf n
              match cache.TryGet(key) with
@@ -60,7 +60,7 @@ module Caching =
                  cache.Set(key, expiryf(temp))
                  temp
 
-     let memoizeWithExpiry f expiryf (cache:ICache<_,_>) = 
+     let memoizeWithExpiry expiryf (cache:ICache<_,_>) f = 
          fun n ->
              match cache.TryGet(n) with
              | Some(v) -> v
@@ -69,6 +69,6 @@ module Caching =
                  cache.Set(n, expiryf(temp))
                  temp
      
-     let memoize f (cache:ICache<_,_>) =
-         memoizeWithExpiry f (NoExpiry) cache
+     let memoize (cache:ICache<_,_>) f =
+         memoizeWithExpiry (NoExpiry) cache f
 

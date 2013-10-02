@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8">
     <!-- 
-      The "FAKE - F# Make"
+      The FAKE - F# Make
  parameters will be replaced with the 
       document title extracted from the <h1> element or
       file name, if there is no <h1> heading
     -->
-    <title>"FAKE - F# Make"
+    <title>FAKE - F# Make
 </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="FAKE - F# Make">
@@ -36,9 +36,7 @@
       <hr />
       <div class="row">
         <div class="span9" id="main">
-          <h1>"FAKE - F# Make"</h1>
-
-<h2>Introduction</h2>
+          <h1>FAKE - F# Make</h1>
 
 <p>Modern build automation systems are not limited to simply recompile programs if source code has changed. 
 They are supposed to get the latest sources from a source code management system, build test databases, 
@@ -60,11 +58,6 @@ Visual Studio or MonoDevelop, which provide syntax highlighting and code complet
 <p>The new DSL was designed to be succinct, typed, declarative, extensible and easy to use. 
 For instance custom build tasks can be added simply by referencing .NET assemblies and using the corresponding classes.</p>
 
-<ul>
-<li>See the <a href="gettingstarted.html">getting started guide</a> for a full sample.</li>
-<li>See the <a href="api/index.htm">api docs</a> if you are interested in special functions.</li>
-</ul>
-
 <h2>Who is using FAKE?</h2>
 
 <p>Some of our users are:</p>
@@ -78,18 +71,9 @@ For instance custom build tasks can be added simply by referencing .NET assembli
 <li><a href="https://github.com/dnauck/Portable.Licensing">Portable.Licensing</a></li>
 </ul>
 
-<h2>How to contribute code</h2>
+<h2>How to get FAKE</h2>
 
-<ul>
-<li>Login in github (you need an account)</li>
-<li>Fork the main repository from <a href="https://github.com/fsharp/FAKE">Github</a></li>
-<li>Push your changes to your fork</li>
-<li>Send a pull request</li>
-</ul>
-
-<h2>Lastest builds and changelog</h2>
-
-<p>You can download the latest builds from http://teamcity.codebetter.com. You don't need to register, a guest login is ok.</p>
+<p>You can download the latest builds from <a href="http://teamcity.codebetter.com">http://teamcity.codebetter.com</a>. You don't need to register, a guest login is ok.</p>
 
 <ul>
 <li><a href="http://teamcity.codebetter.com/viewLog.html?buildId=lastSuccessful&amp;buildTypeId=bt335&amp;tab=artifacts&amp;guest=1">Latest stable build</a></li>
@@ -97,65 +81,17 @@ For instance custom build tasks can be added simply by referencing .NET assembli
 <li><a href="changelog.html">Changelog</a></li>
 </ul>
 
-<h2>Nuget package</h2>
-
-<p>We have a Nuget package at http://nuget.org/packages/FAKE. You can install it with:</p>
-
-<pre lang="csharp">install-package FAKE</pre>
-
-<h2>Mailing list</h2>
-
-<p>The "FAKE - F# Make" mailing list can be found at <a href="http://groups.google.com/group/fsharpMake">http://groups.google.com/group/fsharpMake</a>.</p>
-
-<h2>Articles</h2>
-
-<ul>
-<li><a href="gettingstarted.html">Getting started with "FAKE - F# Make"</a>: This tutorial shows you how to build the CalculatorSample project.</li>
-<li><a href="http://www.navision-blog.de/2009/04/02/adding-fxcop-to-a-fake-build-script">Adding FxCop to a "FAKE" build script</a></li>
-<li><a href="http://www.navision-blog.de/2009/04/05/debugging-fake-f-make-build-scripts">Debugging "FAKE - F# Make" build scripts</a></li>
-<li><a href="http://www.navision-blog.de/2009/04/04/modifying-assemblyinfo-and-version-via-fake-f-make">Modifying AssemblyInfo and Version via "FAKE - F# Make"</a></li>
-<li><a href="http://www.navision-blog.de/2009/04/14/writing-custom-tasks-for-fake-f-make">Writing custom tasks for "FAKE - F# Make"</a></li>
-<li><a href="http://www.navision-blog.de/2009/04/15/integrate-a-fake-f-make-build-script-into-teamcity">Integrating a "FAKE - F# Make" build script into TeamCity</a></li>
-<li><a href="http://www.navision-blog.de/2009/10/14/integrating-a-fake-f-make-build-script-into-cruisecontrol-net">Integrating a "FAKE - F# Make" build script into CruiseControl.NET</a></li>
-<li><a href="http://www.navision-blog.de/2012/01/16/building-fake-scripts-with-jenkins/">Building FAKE scripts with Jenkins</a></li>
-<li><a href="http://www.navision-blog.de/2010/11/03/running-specific-targets-in-fake-f-make/">Running specific targets in "FAKE � F# Make"</a></li>
-</ul>
-
-<h2>Main Features</h2>
-
-<ul>
-<li>Simple build infrastructure</li>
-<li>Easy systax</li>
-<li>Full power of .NET Framework</li>
-<li>Simple <a href="http://www.jetbrains.com/teamcity">TeamCity</a> integration (see <a href="http://www.navision-blog.de/2009/04/15/integrate-a-fake-f-make-build-script-into-teamcity">Integrating a "FAKE - F# Make" build script into TeamCity</a>)</li>
-<li>Simple CruiseControl.NET integration (see <a href="http://www.navision-blog.de/2009/10/14/integrating-a-fake-f-make-build-script-into-cruisecontrol-net">Integrating a "FAKE - F# Make" build script into CruiseControl.NET</a>)</li>
-<li>FinalTarget feature (to release resources even if build fails)</li>
-<li>Extensible platform - <a href="http://www.navision-blog.de/2009/04/14/writing-custom-tasks-for-fake-f-make">Write your own tasks</a></li>
-<li>Easy debugging</li>
-<li>Intellisense support (when using Visual Studio)</li>
-</ul>
-
-<h2>Predefined tasks</h2>
-
-<ul>
-<li>Clean task</li>
-<li><a href="http://www.nunit.org">NUnit</a> support</li>
-<li><a href="http://www.codeplex.com/xunit">xUnit.net</a> support</li>
-<li><a href="https://github.com/machine/machine.specifications">MSpec</a> support</li>
-<li>NCover support</li>
-<li>FxCop support</li>
-<li>ExecProcess task (To run tools via the command line)</li>
-<li>MSBuild task (to compile <em>.csproj and </em>.fsproj projects or run MSBuild scripts)</li>
-<li>XMLRead task</li>
-<li>VSS task (Get sources from Visual Source Safe)</li>
-<li>XCopy task</li>
-<li>Zip task</li>
-<li><a href="http://git-scm.com/">git</a> tasks</li>
-<li>AssemblyInfo task</li>
-<li>MSI task (to run msi-setups with msiexec)</li>
-<li>RegAsm task (to create TLBs from a .dll)</li>
-<li>...</li>
-</ul>
+<div class="row">
+  <div class="span1"></div>
+  <div class="span6">
+    <div class="well well-small" id="nuget">
+      FAKE is also available <a href="https://nuget.org/packages/FAKE">on NuGet</a>.
+      To install the tool, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">Package Manager Console</a>:
+      <pre>PM> Install-Package Fake</pre>
+    </div>
+  </div>
+  <div class="span1"></div>
+</div>
 
 <h1>Using FAKE</h1>
 
@@ -495,7 +431,7 @@ and memoizes it.</p>
 <li>Zips all generated files to deploy\MyProject-0.1.zip</li>
 </ul>
 
-<p>You can read <a href="http://www.navision-blog.de/2009/04/01/getting-started-with-fake-a-f-sharp-make-tool">Getting started with FAKE</a> to build such a script.</p>
+<p>You can read the <a href="gettingstarted.html">getting started guide</a> to build such a script.</p>
 
 <table class="pre"><tr><td class="lines"><pre class="fssnip">
 <span class="l">  1: </span>
@@ -721,181 +657,6 @@ and memoizes it.</p>
 </tr>
 </table>
 
-<h2>Deployment using FAKE</h2>
-
-<table class="pre"><tr><td class="lines"><pre class="fssnip">
-<span class="l">1: </span>
-</pre>
-</td>
-<td class="snippet"><pre class="fssnip">
-<span class="o">*</span> <span class="i">Assumes</span> <span class="i">Fake</span><span class="o">.</span><span class="i">Deploy</span><span class="o">.</span><span class="i">exe</span> <span class="i">is</span> <span class="i">available</span> <span class="k">in</span> <span class="i">the</span> <span class="i">current</span> <span class="i">directory</span> <span class="k">or</span> <span class="i">path</span><span class="o">.</span></pre>
-</td>
-</tr>
-</table>
-
-<h3>Introduction</h3>
-
-<p>The FAKE deployment tool allows users to deploy applications to remote computers and to run scripts on these remote agents. A typical scenario maybe as follows:</p>
-
-<ul>
-<li>Build an application -> run tests -> create artifacts and save on build server (Classical FAKE build workflow)</li>
-<li>Extract artifacts from build server and create a NuGet deployment package</li>
-<li>Push the NuGet package to the desired computer this will run the package's FAKE script on the remote machine</li>
-</ul>
-
-<h3>Installing Fake deployment services</h3>
-
-<p>In order to deploy application to a remote computer a deployment agent needs to be running on that server.</p>
-
-<p>To run an agent in a console, simply run:</p>
-
-<table class="pre"><tr><td class="lines"><pre class="fssnip">
-<span class="l">1: </span>
-</pre>
-</td>
-<td class="snippet"><pre class="fssnip">
-<span class="i">Fake</span><span class="o">.</span><span class="i">Deploy</span></pre>
-</td>
-</tr>
-</table>
-
-<p>To install a windows service on that agent:</p>
-
-<ul>
-<li>Open a command prompt with Administrator Priviledges</li>
-<li>Run Fake.Deploy /install</li>
-</ul>
-
-<p>By default the service starts a listener on port 8080. This can however be configured by editing the Fake.Deploy.exe.config file
-and changing</p>
-
-<table class="pre"><tr><td class="lines"><pre class="fssnip">
-<span class="l">1: </span>
-<span class="l">2: </span>
-</pre>
-</td>
-<td class="snippet"><pre class="fssnip">
-<span class="o">&lt;</span><span class="i">add</span> <span class="i">key</span><span class="o">=</span><span class="s">&quot;</span><span class="s">ServerName</span><span class="s">&quot;</span> <span class="i">value</span><span class="o">=</span><span class="s">&quot;</span><span class="s">localhost</span><span class="s">&quot;</span> <span class="o">/&gt;</span>
-<span class="o">&lt;</span><span class="i">add</span> <span class="i">key</span><span class="o">=</span><span class="s">&quot;</span><span class="s">Port</span><span class="s">&quot;</span> <span class="i">value</span><span class="o">=</span><span class="s">&quot;</span><span class="s">8080</span><span class="s">&quot;</span> <span class="o">/&gt;</span></pre>
-</td>
-</tr>
-</table>
-
-<p>to the desired value. If you use the asterisk as port no. then Fake.Deploy will assign the first open port behind of 8080.</p>
-
-<p>To ensure the service is running you can navigate to http://{computer}:{port}/fake/ and you should be presented with a page giving the 
-status if the service</p>
-
-<h3>Uninstalling Fake deployment services</h3>
-
-<p>To uninstall an agent</p>
-
-<ul>
-<li>Open a command prompt with Administrator Priviledges</li>
-<li>Run Fake.Deploy /uninstall</li>
-</ul>
-
-<h3>Running a FAKE Deployment Package</h3>
-
-<h3>Getting help</h3>
-
-<p>If you want to learn about Fake.Deploy's command line switches then run:</p>
-
-<table class="pre"><tr><td class="lines"><pre class="fssnip">
-<span class="l">1: </span>
-</pre>
-</td>
-<td class="snippet"><pre class="fssnip">
-<span class="i">Fake</span><span class="o">.</span><span class="i">Deploy</span> <span class="o">/</span><span class="i">help</span></pre>
-</td>
-</tr>
-</table>
-
-<h3>Creating a Deployment package</h3>
-
-<p>Since Fake.Deploy uses Nuget packages for deployment you only need to create one of those and include a .fsx file in the root folder of the package.</p>
-
-<p>Instructions for creating nuget packages can be found <a href="http://docs.nuget.org/docs/creating-packages/creating-and-publishing-a-package">at the NuGet document page</a></p>
-
-<h3>Running deployment</h3>
-
-<p>Fake deployment packages can be run manually on the current machine or they can be pushed to an agent on a remote machine.</p>
-
-<p>To run a package on the local machine located at C:\Appdev\MyDeployment.nupkg you would run the following command:</p>
-
-<table class="pre"><tr><td class="lines"><pre class="fssnip">
-<span class="l">1: </span>
-</pre>
-</td>
-<td class="snippet"><pre class="fssnip">
-<span class="i">Fake</span><span class="o">.</span><span class="i">Deploy</span> <span class="o">/</span><span class="i">deploy</span> <span class="i">C</span><span class="o">:</span></pre>
-</td>
-</tr>
-</table>
-
-<p>To run the same package on a remote computer (e.g. integration-1) you can run:</p>
-
-<table class="pre"><tr><td class="lines"><pre class="fssnip">
-<span class="l">1: </span>
-</pre>
-</td>
-<td class="snippet"><pre class="fssnip">
-<span class="i">Fake</span><span class="o">.</span><span class="i">Deploy</span> <span class="o">/</span><span class="i">deployRemote</span> <span class="i">http</span><span class="o">:</span><span class="c">//integration-1:8080 C:\Appdev\MyDeployment.nupkg </span></pre>
-</td>
-</tr>
-</table>
-
-<p>It's also possible to just make a HTTP-POST with the package to http://integration-1:8080/fake</p>
-
-<p>This will push the directory to the given url. It is worth noting that the port may well be different, as this depends on the configuration of the 
-listening agent (see. Installing Fake deployment service)</p>
-
-<h3>Getting information about the deployments</h3>
-
-<table class="pre"><tr><td class="lines"><pre class="fssnip">
-<span class="l">1: </span>
-</pre>
-</td>
-<td class="snippet"><pre class="fssnip">
-<span class="i">The</span> <span class="i">following</span> <span class="i">assumes</span> <span class="i">you</span> <span class="i">have</span> <span class="i">Fake</span><span class="o">.</span><span class="i">Deploy</span> <span class="i">running</span><span class="o">.</span></pre>
-</td>
-</tr>
-</table>
-
-<p>It's easy to get information about the deployments. Just make a HTTP request to server with:</p>
-
-<table class="pre"><tr><td class="lines"><pre class="fssnip">
-<span class="l">1: </span>
-<span class="l">2: </span>
-<span class="l">3: </span>
-<span class="l">4: </span>
-</pre>
-</td>
-<td class="snippet"><pre class="fssnip">
-<span class="i">fake</span><span class="o">/</span><span class="i">deployments</span><span class="o">/</span>                     <span class="k">-&gt;</span> <span class="i">gives</span> <span class="i">all</span> <span class="i">releases</span>
-<span class="i">fake</span><span class="o">/</span><span class="i">deployments</span><span class="o">?</span><span class="i">status</span><span class="o">=</span><span class="i">active</span>        <span class="k">-&gt;</span> <span class="i">gives</span> <span class="i">all</span> <span class="i">active</span> <span class="i">releases</span>
-<span class="i">fake</span><span class="o">/</span><span class="i">deployments</span><span class="o">/</span>{<span class="i">app</span>}                <span class="k">-&gt;</span> <span class="i">gives</span> <span class="i">all</span> <span class="i">releases</span> <span class="k">of</span> <span class="i">app</span>
-<span class="i">fake</span><span class="o">/</span><span class="i">deployments</span><span class="o">/</span>{<span class="i">app</span>}<span class="o">?</span><span class="i">status</span><span class="o">=</span><span class="i">active</span>  <span class="k">-&gt;</span> <span class="i">gives</span> <span class="i">the</span> <span class="i">active</span> <span class="i">release</span> <span class="k">of</span> <span class="i">the</span> <span class="i">app</span></pre>
-</td>
-</tr>
-</table>
-
-<h3>Rollback of releases</h3>
-
-<p>If you want to perform a rollback of a release so do a HTTP-PUT to:</p>
-
-<table class="pre"><tr><td class="lines"><pre class="fssnip">
-<span class="l">1: </span>
-<span class="l">2: </span>
-</pre>
-</td>
-<td class="snippet"><pre class="fssnip">
-<span class="i">fake</span><span class="o">/</span><span class="i">deployments</span><span class="o">/</span>{<span class="i">app</span>}<span class="o">?</span><span onmouseout="hideTip(event, 'fs10', 38)" onmouseover="showTip(event, 'fs10', 38)" class="i">version</span><span class="o">=</span>{<span onmouseout="hideTip(event, 'fs10', 39)" onmouseover="showTip(event, 'fs10', 39)" class="i">version</span>} <span class="k">-&gt;</span> <span class="i">rolls</span> <span class="i">the</span> <span class="i">app</span> <span class="i">back</span> <span class="k">to</span> <span class="i">the</span> <span class="i">given</span> <span onmouseout="hideTip(event, 'fs10', 40)" onmouseover="showTip(event, 'fs10', 40)" class="i">version</span>
-<span class="i">fake</span><span class="o">/</span><span class="i">deployments</span><span class="o">/</span>{<span class="i">app</span>}<span class="o">?</span><span onmouseout="hideTip(event, 'fs10', 41)" onmouseover="showTip(event, 'fs10', 41)" class="i">version</span><span class="o">=</span><span class="i">HEAD</span><span class="k">~</span><span class="n">2</span>    <span class="k">-&gt;</span> <span class="i">relative</span> <span class="i">rollback</span> <span class="k">of</span> <span class="i">the</span> <span class="i">app</span> (<span class="i">two</span> <span class="i">versions</span> <span class="i">earlier</span>)</pre>
-</td>
-</tr>
-</table>
-
           <div class="tip" id="fs1">val apps : &#39;a<br /><br />Full name: index.apps</div>
 <div class="tip" id="fs2">val files : &#39;a<br /><br />Full name: index.files</div>
 <div class="tip" id="fs3">val testDlls : &#39;_arg2<br /><br />Full name: index.testDlls</div>
@@ -912,7 +673,23 @@ listening agent (see. Installing Fake deployment service)</p>
 
           <ul class="nav nav-list" id="menu">
             <li class="nav-header">FAKE - F# Make</li>
-            <li><a href="../index.html">Home page</a></li>
+              <li><a href="index.html">Home page</a></li>
+              <li><a href="deploy.html">Fake.Deploy</a></li>
+              <li class="divider"></li>              
+            <li><a href="https://nuget.org/packages/Fake">Get FAKE via NuGet</a></li>
+              <li><a href="https://github.com/fsharp/FAKE">Source Code on GitHub</a></li>              
+              <li><a href="https://github.com/fsharp/FAKE/blob/develop/License.txt">License (MS-PL)</a></li>
+              <li><a href="api/index.htm">API docs</a></li>
+              <li><a href="changelog.html">Changelog</a></li>
+              <li><a href="contributing.html">Contributing to FAKE</a></li>
+            <li class="nav-header">Articles</li>
+              <li><a href="gettingstarted.html">Getting started</a></li>
+              <li class="divider"></li>              
+              <li><a href="fxcop.html">Using FxCop in a build</a></li>
+              <li><a href="assemblyinfo.html">Modifying AssemblyInfo</a></li>
+              <li><a href="specifictargets.html">Running specific targets</a></li>
+              <li><a href="customtasks.html">Creating custom tasks</a></li>
+              <li><a href="teamcity.html">TeamCity integration</a></li>
             <!--
 
               Here you can add links to other pages of the documentation 
@@ -930,4 +707,4 @@ listening agent (see. Installing Fake deployment service)</p>
     </div>
     <a href="https://github.com/fsharp/FAKE"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
   </body>
-  </html>
+</html>

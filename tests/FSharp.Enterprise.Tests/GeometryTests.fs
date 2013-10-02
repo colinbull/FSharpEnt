@@ -292,7 +292,7 @@ type ``Given the Segment module`` () =
         let startTime = DateTimeOffset(2013,5,6,0,0,0,TimeSpan.Zero)
         let endTime = startTime.AddMinutes(30.0)
         let segment = Segment.makeContinuous(Point.make(startTime, Some 100.0),Point.make(endTime, Some 100.0))
-        let actual = Segment.Time.interpolateTime 100.0 segment
+        let actual = Segment.Time.tryInterpolateTime 100.0 segment
         let expected = Some startTime
         actual |> should equal expected
 
@@ -301,7 +301,7 @@ type ``Given the Segment module`` () =
         let startTime = DateTimeOffset(2013,5,6,7,0,0,TimeSpan.FromHours(1.0))
         let endTime = startTime.AddMinutes(30.0)
         let segment = Segment.makeContinuous(Point.make(startTime, Some 105.0),Point.make(endTime, Some 95.0))
-        let actual = Segment.Time.interpolateTime 100.0 segment
+        let actual = Segment.Time.tryInterpolateTime 100.0 segment
         let expected = Some (startTime.AddMinutes(15.0))
         actual |> should equal expected
 
@@ -451,7 +451,7 @@ type ``Given the TimeLine module`` () =
     member x.``I can fold a function over the segments of a line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 50.0; Some 100.0; Some 200.0|]        
         let line = Line.makeContinuous points
-        let energy (lineSegment:Segment.Time.T<float>) =
+        let energy (lineSegment:Segment.Time.T<float option>) =
             let power = (Segment.startY lineSegment ?+? Segment.endY lineSegment) ?/ 2.0 
             let time = (lineSegment |> Segment.Time.deltaTime).TotalMinutes
             power ?* time 
@@ -510,7 +510,7 @@ type ``Given the TimeLine module`` () =
     member x.``I can add points into a line at a given time interval`` () =
         let points = Helper.getPoints Helper.d0 12.0 [|Some 0.0; Some 12.0; Some 24.0; Some 36.0|]        
         let line = Line.makeContinuous points
-        let actual = Line.divide Segment.Time.interpolateValue ([0.;30.;60.] |> List.map (fun x -> Helper.d0.AddMinutes(x))) line
+        let actual = Line.divide Segment.Time.tryInterpolateValue ([0.;30.;60.] |> List.map (fun x -> Helper.d0.AddMinutes(x))) line
         let expected = [
                            Point.make (Helper.d0, Some 0.);
                            Point.make (Helper.d0.AddMinutes(12.), Some 12.0);
@@ -527,7 +527,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can take a slice of the timeline with a single element`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.|]        
         let line = Line.makeContinuous points
-        let actual = Line.slice (Some Segment.Time.interpolateValue) (Helper.d0,Helper.d0.AddMinutes(30.)) line
+        let actual = Line.slice (Some Segment.Time.tryInterpolateValue) (Helper.d0,Helper.d0.AddMinutes(30.)) line
         let expected = 
             [|
                 Point.make (Helper.d0, Some 0.0)
@@ -540,7 +540,7 @@ type ``Given a continuous TimeLine`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.; Some 200.; Some 250.|] 
         let line = Line.makeContinuous points
         let interval = Interval.make (Helper.d0.AddMinutes(15.),Helper.d0.AddMinutes(45.))
-        let actual = Line.slice (Some Segment.Time.interpolateValue) interval line
+        let actual = Line.slice (Some Segment.Time.tryInterpolateValue) interval line
         let expected = 
             [|
                 Point.make (Helper.d0.AddMinutes(15.), Some 50.0)
@@ -554,7 +554,7 @@ type ``Given a continuous TimeLine`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.;|] 
         let line = Line.makeContinuous points
         let interval = Interval.make (Helper.d0.AddMinutes(10.),Helper.d0.AddMinutes(15.))
-        let actual = Line.slice (Some Segment.Time.interpolateValue) interval line
+        let actual = Line.slice (Some Segment.Time.tryInterpolateValue) interval line
         Segment.startX (Line.startSegment actual).Value |> should equal (Helper.d0.AddMinutes(10.))
         Segment.endX (Line.startSegment actual).Value |> should equal (Helper.d0.AddMinutes(15.))
         Segment.startY (Line.startSegment actual).Value |> equalWithin 0.1 (Some 33.3) |> should be True
@@ -565,7 +565,7 @@ type ``Given a continuous TimeLine`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.; Some 200.; Some 250.|] 
         let line = Line.makeContinuous points
         let interval = Interval.make (Helper.d0.AddMinutes(30.),Helper.d0.AddHours(1.))
-        let actual = Line.slice (Some Segment.Time.interpolateValue) interval line
+        let actual = Line.slice (Some Segment.Time.tryInterpolateValue) interval line
         let expected = 
             [|
                 Point.make (Helper.d0.AddMinutes(30.), Some 100.0)
@@ -577,7 +577,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can try find a value before the start of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = Line.makeContinuous points
-        let actual = Line.Time.tryFindValue (Some Segment.Time.interpolateValue) (Helper.d0.AddMinutes(-1.0)) line
+        let actual = Line.Time.tryFindValue (Some Segment.Time.tryInterpolateValue) (Helper.d0.AddMinutes(-1.0)) line
         let expected = None
         actual |> should equal expected 
 
@@ -585,7 +585,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can try find a value at the start of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = Line.makeContinuous points
-        let actual = Line.Time.tryFindValue (Some Segment.Time.interpolateValue) Helper.d0 line
+        let actual = Line.Time.tryFindValue (Some Segment.Time.tryInterpolateValue) Helper.d0 line
         let expected = Some 0.0
         actual |> should equal expected 
 
@@ -593,7 +593,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can try find a value at the end of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = Line.makeContinuous points
-        let actual = Line.Time.tryFindValue (Some Segment.Time.interpolateValue) (Helper.d0.AddMinutes(60.0)) line
+        let actual = Line.Time.tryFindValue (Some Segment.Time.tryInterpolateValue) (Helper.d0.AddMinutes(60.0)) line
         let expected = Some 200.0
         actual |> should equal expected 
 
@@ -601,7 +601,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can try find a value after the end of the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = Line.makeContinuous points
-        let actual = Line.Time.tryFindValue (Some Segment.Time.interpolateValue) (Helper.d0.AddMinutes(61.0)) line
+        let actual = Line.Time.tryFindValue (Some Segment.Time.tryInterpolateValue) (Helper.d0.AddMinutes(61.0)) line
         let expected = None
         actual |> should equal expected 
 
@@ -609,7 +609,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can try find a value at the start of a segment within the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = Line.makeContinuous points
-        let actual = Line.Time.tryFindValue (Some Segment.Time.interpolateValue) (Helper.d0.AddMinutes(30.0)) line
+        let actual = Line.Time.tryFindValue (Some Segment.Time.tryInterpolateValue) (Helper.d0.AddMinutes(30.0)) line
         let expected = Some 100.0
         actual |> should equal expected 
 
@@ -617,7 +617,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can try find a value at the within a segment within the line`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 100.0; Some 200.0|]        
         let line = Line.makeContinuous points
-        let actual = Line.Time.tryFindValue (Some Segment.Time.interpolateValue) (Helper.d0.AddMinutes(45.0)) line
+        let actual = Line.Time.tryFindValue (Some Segment.Time.tryInterpolateValue) (Helper.d0.AddMinutes(45.0)) line
         let expected = Some 150.0
         actual |> should equal expected 
 
@@ -625,14 +625,14 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can convert a line to a seq`` () =
         let points = Helper.getPoints Helper.d0 30.0 [|Some 0.0; Some 30.0; Some 60.0|]        
         let line = Line.makeContinuous points
-        let actual = Line.Time.toSeq (Some Segment.Time.interpolateValue) (TimeSpan.FromMinutes(1.0)) line |> Seq.toArray
+        let actual = Line.Time.toSeq (Some Segment.Time.tryInterpolateValue) (TimeSpan.FromMinutes(1.0)) line |> Seq.toArray
         let expected = [0 .. 60] |> Seq.map (fun i -> float i |> Some) |> Seq.toArray
         actual |> should equal expected 
 
     [<Test>]
     member x.``I can convert an empty line to a seq`` () =
         let line : Line.Time.T<float> = Line.emptyContinuous ()
-        let actual = Line.Time.toSeq (Some Segment.Time.interpolateValue) (TimeSpan.FromMinutes(1.0)) line
+        let actual = Line.Time.toSeq (Some Segment.Time.tryInterpolateValue) (TimeSpan.FromMinutes(1.0)) line
         let expected = Seq.empty
         actual |> should equal expected 
 
@@ -640,7 +640,7 @@ type ``Given a continuous TimeLine`` () =
     member x.``I can append two a empty lines`` () =
         let line1 : Line.Time.T<float> = Line.emptyContinuous ()
         let line2 : Line.Time.T<float> = Line.emptyContinuous ()
-        let actual = Line.append (Some Segment.Time.interpolateValue) line1 line2
+        let actual = Line.append (Some Segment.Time.tryInterpolateValue) line1 line2
         let expected : Line.Time.T<float> = Line.emptyContinuous ()
         actual |> should equal expected
          
@@ -649,7 +649,7 @@ type ``Given a continuous TimeLine`` () =
         let points = [|0.0 .. 10.0 .. 100.0|] |> Array.map (Some) |> Helper.getPoints Helper.d0 10.0         
         let line1 : Line.Time.T<float> = Line.emptyContinuous ()
         let line2 = Line.makeContinuous points
-        let actual = Line.append (Some Segment.Time.interpolateValue) line1 line2
+        let actual = Line.append (Some Segment.Time.tryInterpolateValue) line1 line2
         let expected = line2
         actual |> should equal expected 
          
@@ -658,7 +658,7 @@ type ``Given a continuous TimeLine`` () =
         let points = [|0.0 .. 10.0 .. 100.0|] |> Array.map (Some) |> Helper.getPoints Helper.d0 10.0         
         let line1 = Line.makeContinuous points
         let line2 : Line.Time.T<float> = Line.emptyContinuous ()
-        let actual = Line.append (Some Segment.Time.interpolateValue) line1 line2
+        let actual = Line.append (Some Segment.Time.tryInterpolateValue) line1 line2
         let expected = line1
         actual |> should equal expected 
          
@@ -670,7 +670,7 @@ type ``Given a continuous TimeLine`` () =
         let line2 =
             [|100.0 .. 10.0 .. 200.0|] |> Array.map (Some) |> Helper.getPoints Helper.d0 10.0
             |> Line.makeContinuous
-        let actual = Line.append (Some Segment.Time.interpolateValue) line1 line2
+        let actual = Line.append (Some Segment.Time.tryInterpolateValue) line1 line2
         let expected = line2
         actual |> should equal expected 
          
@@ -682,7 +682,7 @@ type ``Given a continuous TimeLine`` () =
         let line2 =
             [|100.0 .. 10.0 .. 200.0|] |> Array.map (Some) |> Helper.getPoints (Helper.d0.AddMinutes(50.0)) 10.0
             |> Line.makeContinuous
-        let actual = Line.append (Some Segment.Time.interpolateValue) line1 line2
+        let actual = Line.append (Some Segment.Time.tryInterpolateValue) line1 line2
         let expected : Line.Time.T<_> =
             let points1 = [| 0.0; 10.0; 20.0; 30.0; 40.0; 50.0 |] |> Array.map (Some) |> Helper.getPoints Helper.d0 10.0
             let segments1 = points1 |> Seq.pairwise |> Seq.map Segment.makeContinuous
@@ -700,7 +700,7 @@ type ``Given a continuous TimeLine`` () =
         let line2 =
             [|100.0 .. 10.0 .. 200.0|] |> Array.map (Some) |> Helper.getPoints (Helper.d0.AddMinutes(100.0)) 10.0
             |> Line.makeContinuous
-        let actual = Line.append (Some Segment.Time.interpolateValue) line1 line2
+        let actual = Line.append (Some Segment.Time.tryInterpolateValue) line1 line2
         let expected : Line.Time.T<_> =
             let points1 = [|0.0 .. 10.0 .. 100.0|] |> Array.map (Some) |> Helper.getPoints Helper.d0 10.0
             let segments1 = points1 |> Seq.pairwise |> Seq.map Segment.makeContinuous
@@ -718,7 +718,7 @@ type ``Given a continuous TimeLine`` () =
         let line2 =
             [|100.0 .. 10.0 .. 200.0|] |> Array.map (Some) |> Helper.getPoints Helper.d0 10.0
             |> Line.makeContinuous
-        let actual = Line.append (Some Segment.Time.interpolateValue) line1 line2
+        let actual = Line.append (Some Segment.Time.tryInterpolateValue) line1 line2
         let expected = line2 
         actual.Segments |> should equal expected.Segments
          
@@ -730,7 +730,7 @@ type ``Given a continuous TimeLine`` () =
         let line2 =
             [|100.0 .. 10.0 .. 150.0|] |> Array.map (Some) |> Helper.getPoints (Helper.d0.AddMinutes(45.0)) 10.0
             |> Line.makeContinuous
-        let actual = Line.append (Some Segment.Time.interpolateValue) line1 line2
+        let actual = Line.append (Some Segment.Time.tryInterpolateValue) line1 line2
         let expected : Line.Time.T<_> =
             let points1 = 
                 [| 0.0,0.0; 10.0,10.0; 20.0,20.0; 30.0,30.0; 40.0,40.0; 45.0,45.0 |] 
