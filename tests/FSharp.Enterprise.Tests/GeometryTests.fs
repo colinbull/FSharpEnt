@@ -46,6 +46,108 @@ type ``Given the Point Time module`` () =
 type ``Given the Segment module`` () =
 
     [<Test>]
+    member x.``I can divide a segment when an interval is external and preceeds the segment``() =
+        let segment = Segment.makeContinuous (Point.make(5.,5.),Point.make(10.,10.))
+        let actual = Segment.divide Segment.interpolateX [1.;2.] segment 
+        actual |> should equal [|segment|]
+
+    [<Test>]
+    member x.``I can divide a segment when an interval is external and preceeds the segment but endpoints align``() =
+        let segment = Segment.makeContinuous (Point.make(5.,5.),Point.make(10.,10.))
+        let actual = Segment.divide Segment.interpolateX [10.;12.] segment 
+        actual |> should equal [|segment|]
+
+
+    [<Test>]
+    member x.``I can divide a segment when an interval is external and preceeds the segment but startpoints align``() =
+        let segment = Segment.makeContinuous (Point.make(5.,5.),Point.make(10.,10.))
+        let actual = Segment.divide Segment.interpolateX [2.;5.] segment 
+        actual |> should equal [|segment|]
+
+    [<Test>]
+    member x.``I can divide a segment when an interval is external and follows the segment``() = 
+        let segment = Segment.makeContinuous (Point.make(5.,5.),Point.make(10.,10.))
+        let actual = Segment.divide Segment.interpolateX [11.;12.] segment 
+        actual |> should equal [|segment|]
+
+    [<Test>]
+    member x.``I can divide a segment when an interval is entirely internal to the segment``() = 
+        let segment = Segment.makeContinuous (Point.make(0.,0.),Point.make(10.,10.))
+        let actual = Segment.divide Segment.interpolateX [3.;7.] segment  
+        let expected = 
+            [
+                Segment.makeContinuous (Point.make(0.,0.), Point.make(3.,3.))
+                Segment.makeContinuous (Point.make(3.,3.), Point.make(7.,7.))
+                Segment.makeContinuous (Point.make(7.,7.), Point.make(10.,10.))
+            ]
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can divide a segment when an interval is entirely internal to the segment but start points coincide``() = 
+        let segment = Segment.makeContinuous (Point.make(0.,0.),Point.make(10.,10.))
+        let actual = Segment.divide Segment.interpolateX [0.;7.] segment  
+        let expected = 
+            [
+                Segment.makeContinuous (Point.make(0.,0.), Point.make(7.,7.))
+                Segment.makeContinuous (Point.make(7.,7.), Point.make(10.,10.))
+            ]
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can divide a segment when an interval is entirely internal to the segment but end points coincide``() = 
+        let segment = Segment.makeContinuous (Point.make(0.,0.),Point.make(10.,10.))
+        let actual = Segment.divide Segment.interpolateX [7.;10.] segment  
+        let expected = 
+            [
+                Segment.makeContinuous (Point.make(0.,0.), Point.make(7.,7.))
+                Segment.makeContinuous (Point.make(7.,7.), Point.make(10.,10.))
+            ]
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can divide a segment when an interval is entirely internal to the segment but start and end points coincide``() = 
+        let segment = Segment.makeContinuous (Point.make(0.,0.),Point.make(10.,10.))
+        let actual = Segment.divide Segment.interpolateX [0.;10.] segment  
+        let expected = 
+            [
+                Segment.makeContinuous (Point.make(0.,0.), Point.make(10.,10.))
+            ]
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can divide a segment when an interval bounds the segments end points``() = 
+        let segment = Segment.makeContinuous (Point.make(0.,0.),Point.make(10.,10.))
+        let actual = Segment.divide Segment.interpolateX [8.;12.] segment  
+        let expected = 
+            [
+                Segment.makeContinuous (Point.make(0.,0.), Point.make(8.,8.))
+                Segment.makeContinuous (Point.make(8.,8.), Point.make(10.,10.))
+            ]
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can divide a segment when an interval bounds the segments start points``() = 
+        let segment = Segment.makeContinuous (Point.make(0.,0.),Point.make(10.,10.))
+        let actual = Segment.divide Segment.interpolateX [-2.;2.] segment  
+        let expected = 
+            [
+                Segment.makeContinuous (Point.make(0.,0.), Point.make(2.,2.))
+                Segment.makeContinuous (Point.make(2.,2.), Point.make(10.,10.))
+            ]
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can divide a segment when an interval encloses the segment``() = 
+        let segment = Segment.makeContinuous (Point.make(0.,0.),Point.make(10.,10.))
+        let actual = Segment.divide Segment.interpolateX [-2.;12.] segment  
+        let expected = 
+            [
+                Segment.makeContinuous (Point.make(0.,0.), Point.make(10.,10.))
+            ]
+        actual |> should equal expected
+
+
+    [<Test>]
     member x.``the intersection calculation for two intersecting line segments should return Some`` () =
         let d0 = DateTimeOffset(2013,5,6,0,0,0,TimeSpan.FromHours(0.))
         let d1 = d0.AddDays(1.0)
@@ -387,7 +489,37 @@ type ``Given the TimeLine module`` () =
         let line = Line.makeContinuous points
         let actual = Line.endXs line
         let expected = [Helper.d0.AddMinutes(30.0);Helper.d0.AddMinutes(60.0)]        
-        actual |> should equal expected 
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can add points into a line at a given interval``() =
+        let points = 
+            [   Point.make(0., 0.); Point.make(10., 10.); 
+                Point.make(35., 35.); Point.make(56., 56.);
+                Point.make(116., 116.); Point.make(146., 146.) ]
+        let line = Line.makeContinuous points
+        let actual = Line.divide Segment.interpolateX [0.;30.;60.;90.;120.;150.] line
+        let expected = 
+            [   Point.make(0., 0.); Point.make(10., 10.); Point.make (30., 30.) 
+                Point.make(35., 35.); Point.make(56., 56.); Point.make (60., 60.); Point.make (90., 90.)
+                Point.make(116., 116.); Point.make (120., 120.); Point.make(146., 146.) ]
+            |> Line.makeContinuous
+        actual |> should equal expected  
+        
+    [<Test>]
+    member x.``I can add points into a line at a given time interval`` () =
+        let points = Helper.getPoints Helper.d0 12.0 [|Some 0.0; Some 12.0; Some 24.0; Some 36.0|]        
+        let line = Line.makeContinuous points
+        let actual = Line.divide Segment.Time.interpolateValue ([0.;30.;60.] |> List.map (fun x -> Helper.d0.AddMinutes(x))) line
+        let expected = [
+                           Point.make (Helper.d0, Some 0.);
+                           Point.make (Helper.d0.AddMinutes(12.), Some 12.0);
+                           Point.make (Helper.d0.AddMinutes(24.), Some 24.0);
+                           Point.make (Helper.d0.AddMinutes(30.), Some 30.0);
+                           Point.make (Helper.d0.AddMinutes(36.), Some 36.0);
+                       ] |> Line.makeContinuous     
+        actual |> should equal expected      
+
 
 type ``Given a continuous TimeLine`` () =
 

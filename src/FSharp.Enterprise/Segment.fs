@@ -102,16 +102,17 @@ module Segment =
          let iStart, iEnd = Interval.left interval, Interval.right interval
          let segStart, segEnd = startX segment, endX segment
          if segEnd <= iStart || segStart >= iEnd
-         then External segment
+         then External (iStart, iEnd, segment)
          elif segStart >= iStart && segEnd <= iEnd
-         then Internal segment
+         then Internal (iStart, iEnd, segment)
          elif segStart < iStart && segEnd <= iEnd
-         then OverlapStart (iStart,segment)
+         then OverlapStart (iStart, iEnd,segment)
          elif segStart >= iStart && segEnd > iEnd
-         then OverlapEnd (iEnd, segment)
+         then OverlapEnd (iStart, iEnd, segment)
          else Overlap (iStart, iEnd, segment)
+           
 
-    let inline interpolateY x s =
+    let inline tryInterpolateY x s =
         if isInRange IntervalType.T.Closed x s then
             let x0,y0 = startPoint s |> fun p -> p.X, p.Y 
             let x1,y1 = endPoint s |> fun p -> p.X, p.Y 
@@ -120,7 +121,12 @@ module Segment =
         else
             None
 
-    let inline interpolateX y s = 
+    let inline interpolateY x s =
+        let x0,y0 = startPoint s |> fun p -> p.X, p.Y 
+        let x1,y1 = endPoint s |> fun p -> p.X, p.Y 
+        Math.Interpolation.linear x x0 y0 x1 y1
+
+    let inline tryInterpolateX y s = 
         if isInDomain IntervalType.T.Closed y s then
             if isFlatDomain s then
                 Some (startX s)
@@ -131,6 +137,24 @@ module Segment =
                 Some x
         else
             None
+
+    let inline interpolateX y s = 
+        if isFlatDomain s then
+           (startX s)
+        else
+            let x0,y0 = startPoint s |> fun p -> p.X, p.Y
+            let x1,y1 = endPoint s |> fun p -> p.X, p.Y
+            Math.Interpolation.linear y y0 x0 y1 x1
+
+    let inline divide interpolateF (xs:seq<'a>) segment =
+        seq {
+            yield startPoint segment
+            yield! Seq.filter (fun x -> isInRange IntervalType.T.Open x segment) xs |> Seq.map (fun x -> Point.make(x, interpolateF x segment))
+            yield endPoint segment
+        } |> Seq.pairwise 
+        |> Seq.map makeContinuous
+
+       
 
     let inline intersection s1 s2 =
         let x0,y0 = startPoint s1 |> fun p -> p.X, p.Y

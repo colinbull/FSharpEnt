@@ -85,6 +85,12 @@ module Interval =
 
     let inline delta (interval:T<_>) = 
         (right interval) - (left interval)
+
+    let toIntervals generatorF (interval:T<'a>) : seq<T<'b>> =
+        interval
+        |> generatorF
+        |> Seq.pairwise
+        |> Seq.map make
    
     /// Represents an interval between two options of float.
     module Value =
@@ -150,7 +156,6 @@ module Interval =
 
         let delta (interval:T<Option<float<'u>>>) = 
             right interval ?-? left interval
-
 
     /// Represents an interval between two DateTimeOffsets.
     module Time =
@@ -242,10 +247,6 @@ module Interval =
         /// Returns an interval with the left floored to a halfhour value and right ceiled to a halfhour value.
         let toHalfhour (interval:T) =
             make(left interval |> DateTimeOffset.floorHalfhour, right interval |> DateTimeOffset.ceilHalfhour)
-
-        let toHalfhourIntervals interval = 
-            interval 
-            |> getHalfhourTimes IntervalType.T.Closed
-            |> Seq.pairwise
-            |> Seq.map make
-
+        
+        let toHalfhourIntervals interval : seq<T> =
+            toIntervals (getHalfhourTimes IntervalType.T.Closed) interval

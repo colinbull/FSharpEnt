@@ -26,7 +26,7 @@ module Line =
             let message = sprintf "invalid line type: expected %A but was %A" ``type`` line.Type
             invalidArg argName message
 
-    let internal makeFromSegments lineType segments = { Type = lineType; Segments = segments }
+    let makeFromSegments lineType segments = { Type = lineType; Segments = segments |> Seq.toArray }
     let makeDiscreteFromSegments intervalType segments = makeFromSegments (DiscreteSegments intervalType) segments
     let makeContinuousFromSegments segments = makeFromSegments ContinuousSegments segments
                                 
@@ -214,13 +214,13 @@ module Line =
                     match (interval, seg) with
                     | Segment.Overlap (iStart, iEnd, seg) ->
                         Some (Segment.makeDiscrete (interval, Segment.startY seg))
-                    | Segment.Internal seg -> 
+                    | Segment.Internal (_,_,seg) -> 
                         Some(seg)
-                    | Segment.External seg -> 
+                    | Segment.External (_,_,seg) -> 
                         None
-                    | Segment.OverlapStart (dt,seg) ->
+                    | Segment.OverlapStart (dt,_,seg) ->
                         Some (Segment.map (fun (s,e) -> Point.mapX (fun _ -> dt) s, e) seg)
-                    | Segment.OverlapEnd (dt,seg) ->
+                    | Segment.OverlapEnd (_,dt,seg) ->
                         Some (Segment.map (fun (s,e) -> s, Point.make(dt,s.Y)) seg))
             | ContinuousSegments _ ->
                 let sif = Option.get segmentInterpolateF
@@ -231,13 +231,13 @@ module Line =
                         Some (Segment.map (fun (s,e) -> 
                                     Point.make (iStart, sif iStart seg), 
                                     Point.make (iEnd, sif iEnd seg)) seg)
-                    | Segment.Internal seg -> 
+                    | Segment.Internal (_,_,seg) -> 
                         Some(seg)
-                    | Segment.External seg -> 
+                    | Segment.External (_,_,seg) -> 
                         None
-                    | Segment.OverlapStart (dt,seg) ->
+                    | Segment.OverlapStart (dt,_,seg) ->
                         Some (Segment.map (fun (s,e) -> Point.make (dt, sif dt seg), e) seg)
-                    | Segment.OverlapEnd (dt,seg) ->
+                    | Segment.OverlapEnd (_,dt,seg) ->
                         Some (Segment.map (fun (s,e) -> s, Point.make (dt, sif dt seg)) seg))
         { Type = line.Type; Segments = segments}
 
@@ -263,7 +263,6 @@ module Line =
             | ContinuousSegments _ -> [| Segment.emptyContinuous interval |]
         makeFromSegments lineType segments
 
-
     let inline area unitF line =
         Array.map (Segment.area unitF) line.Segments
         |> Array.sum
@@ -271,6 +270,11 @@ module Line =
     let inline tryArea unitF line =
         Array.choose (Segment.tryArea unitF) line.Segments
         |> Array.sum
+
+    let inline divide interpolateF xs line = 
+        line.Segments
+        |> Seq.collect (Segment.divide interpolateF xs)
+        |> makeContinuousFromSegments
 
     module Time =
     
@@ -299,5 +303,3 @@ module Line =
             |> Option.getOrElseWith Seq.empty (fun interval ->
                 Interval.Time.toSeq IntervalType.T.Closed timeSpan interval
                 |> Seq.map (fun time -> tryFindValue segmentInterpolateF time line))
-
-
