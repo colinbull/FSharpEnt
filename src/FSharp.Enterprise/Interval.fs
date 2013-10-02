@@ -62,12 +62,36 @@ module Interval =
         then interval 
         else flip interval
 
+    let isIn t n (interval) = 
+        (order (<=) >> contains (>=) (>) (<=) (<) n t) interval 
+
     let map f (interval:T<_>) : T<_> = 
         make <| f (left interval, right interval) 
 
     let merge i1 i2 =
         make(min (left i1) (left i2), max (right i1) (right i2))
 
+    /// Returns true if the intervals intersect, otherwise false.
+    let inline intersects i1 i2 =
+        let a,b = left i1, right i1
+        let c,d = left i2, right i2 
+        (max a b > min c d) && (min a b < max c d)
+
+    /// Returns <0 if there is no overlap, 0 if touching and >0 if intersecting.
+    let inline overlaps i1 i2 =
+        let a,b = left i1, right i1
+        let c,d = left i2, right i2 
+        min (max a b) (max c d) - max (min c d) (min a b)
+
+    let inline delta (interval:T<_>) = 
+        (right interval) - (left interval)
+
+    let toIntervals generatorF (interval:T<'a>) : seq<T<'b>> =
+        interval
+        |> generatorF
+        |> Seq.pairwise
+        |> Seq.map make
+   
     /// Represents an interval between two options of float.
     module Value =
 
@@ -133,7 +157,6 @@ module Interval =
         let delta (interval:T<Option<float<'u>>>) = 
             right interval ?-? left interval
 
-
     /// Represents an interval between two DateTimeOffsets.
     module Time =
         
@@ -198,23 +221,25 @@ module Interval =
                 if IntervalType.isRightClosed intervalType then yield endTime
             }
 
-        let getTimes intervalType ceilF floorF step (interval:T<DateTimeOffset>) =
-            let startTime = interval |> left |> ceilF
-            let endTime = interval |> right |> floorF
+        let getTimes intervalType leftF rightF step (interval:T<DateTimeOffset>) =
+            let startTime = interval |> left |> leftF
+            let endTime = interval |> right |> rightF
             if startTime > right interval || endTime < left interval then
                 Seq.empty
             else
                 make(startTime,endTime) |> toSeq intervalType step
+                
+        /// Returns the times of the days that fall within the interval.
+        let getDayTimes intervalType (interval:T<DateTimeOffset>) =
+            getTimes intervalType DateTimeOffset.ceilDay DateTimeOffset.floorDay (TimeSpan.FromDays(1.0)) interval        
                                 
         /// Returns the times of the halfhours that fall within the interval.
         let getHalfhourTimes intervalType (interval:T<DateTimeOffset>) =
-            interval
-            |> getTimes intervalType DateTimeOffset.ceilHalfhour DateTimeOffset.floorHalfhour (TimeSpan.FromMinutes(30.0))
+            getTimes intervalType DateTimeOffset.ceilHalfhour DateTimeOffset.floorHalfhour (TimeSpan.FromMinutes(30.0)) interval
 
         /// Returns the times of the minutes that fall within the interval.
-        let getMinuteTimes intervalType (interval:T<DateTimeOffset>) =
-            interval
-            |> getTimes intervalType DateTimeOffset.ceilMinute DateTimeOffset.floorMinute (TimeSpan.FromMinutes(1.0))
+        let getMinuteTimes intervalType (interval:T<DateTimeOffset>) = 
+            getTimes intervalType DateTimeOffset.ceilMinute DateTimeOffset.floorMinute (TimeSpan.FromMinutes(1.0)) interval
         
         let incr (span:TimeSpan) (interval:T) : T = 
             interval |> map (fun (s,e) -> s.Add(span), e.Add(span)) 
@@ -222,10 +247,6 @@ module Interval =
         /// Returns an interval with the left floored to a halfhour value and right ceiled to a halfhour value.
         let toHalfhour (interval:T) =
             make(left interval |> DateTimeOffset.floorHalfhour, right interval |> DateTimeOffset.ceilHalfhour)
-
-        let toHalfhourIntervals interval = 
-            interval 
-            |> getHalfhourTimes IntervalType.T.Closed
-            |> Seq.pairwise
-            |> Seq.map make
-
+        
+        let toHalfhourIntervals interval : seq<T> =
+            toIntervals (getHalfhourTimes IntervalType.T.Closed) interval

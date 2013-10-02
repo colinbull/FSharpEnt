@@ -78,6 +78,9 @@ module LookUp =
         let toSeq (s:Double<_,_,_>) = 
             Map.toSeq s |> Seq.map (fun (k,v) -> k, v |> Map.toSeq)
 
+        let outerKeys (s:Double<_,_,_>) =
+            Map.toSeq s |> Seq.map fst
+
         let add key key' item (s:Double<_,_,_>) =
             match s.TryFind(key) with
             | Some(s') -> s.Add(key, s'.Add(key' , item))

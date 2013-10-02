@@ -6,15 +6,16 @@ module Option =
     let inline concat x = 
         Option.bind id x
 
-    let inline accumulate (value:Option<_>) (acc:Option<_>) =
+    let inline accumulate (acc:Option<_>) (value:Option<_>) =
         if acc.IsSome then
             if value.IsSome 
-            then Some (value.Value + acc.Value)
+            then Some (acc.Value + value.Value)
             else acc
         else
             value
 
-
+    let inline (<&>) f m = 
+        Option.map (fun f' -> f' m) f
 
 module OptionOperators =
 

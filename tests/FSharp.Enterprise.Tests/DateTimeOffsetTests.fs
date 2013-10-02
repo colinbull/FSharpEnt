@@ -12,6 +12,7 @@ open FSharp.Enterprise.DateTimeOffset
 type ``Given a DateTimeOffset`` () =
 
     let date = DateTimeOffset(2013,5,8,23,0,0,TimeSpan.FromHours(0.0))
+    let day = DateTimeOffset(2013,5,8,0,0,0,TimeSpan.FromHours(0.0))
 
     let singleMonth month (granularity : TimeSpan) = 
       let s = (DateTimeOffset(2012, month, 01, 0, 0, 0, TimeSpan.FromHours(0.)))
@@ -54,7 +55,24 @@ type ``Given a DateTimeOffset`` () =
         let actual = date.AddMinutes(23.) |> DateTimeOffset.roundHalfhour
         let expected = date.AddMinutes(30.)
         actual |> should equal expected
+    
+    [<Test>]
+    member x.``I can round down to the nearest day`` () =
+        let actual = day.AddHours(12.).AddSeconds(-1.0) |> DateTimeOffset.roundDay
+        let expected = day
+        actual |> should equal expected
 
+    [<Test>]
+    member x.``I can round up to the nearest day at midday`` () =
+        let actual = day.AddHours(12.) |> DateTimeOffset.roundDay
+        let expected = day
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can round up to the nearest day`` () =
+        let actual = day.AddHours(12.).AddSeconds(1.) |> DateTimeOffset.roundDay
+        let expected = day.AddDays(1.)
+        actual |> should equal expected
 
     [<Test>]
     member x.``I can get the halfhour ceiling with 0 seconds past the hour`` () =
@@ -150,6 +168,54 @@ type ``Given a DateTimeOffset`` () =
     member x.``I can get the minute floor with 1 seconds past the halfhour`` () =
         let actual = date.AddMinutes(30.0).AddSeconds(1.0) |> DateTimeOffset.floorMinute
         let expected = date.AddMinutes(30.0)
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can get the day ceiling with 0 seconds past the hour`` () =
+        let actual = day |> DateTimeOffset.ceilDay
+        let expected = day
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can get the day ceiling with 1 second past the hour`` () =
+        let actual = day.AddSeconds(1.0) |> DateTimeOffset.ceilDay
+        let expected = day.AddDays(1.0)
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can get the day ceiling with 0 seconds past midday`` () =
+        let actual = day.AddHours(12.0) |> DateTimeOffset.ceilDay
+        let expected = day.AddDays(1.0)
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can get the day ceiling with 1 seconds past midday`` () =
+        let actual = day.AddHours(12.0).AddSeconds(1.0) |> DateTimeOffset.ceilDay
+        let expected = day.AddDays(1.0)
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can get the day floor with 0 seconds past the hour`` () =
+        let actual = day |> DateTimeOffset.floorDay
+        let expected = day
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can get the day floor with 1 second past the hour`` () =
+        let actual = day.AddSeconds(1.0) |> DateTimeOffset.floorDay
+        let expected = day
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can get the day floor with 0 seconds past midday`` () =
+        let actual = day.AddHours(12.0) |> DateTimeOffset.floorDay
+        let expected = day
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can get the day floor with 1 seconds past midday`` () =
+        let actual = day.AddHours(12.0).AddSeconds(1.0) |> DateTimeOffset.floorDay
+        let expected = day
         actual |> should equal expected
 
     [<Test>]
@@ -380,3 +446,23 @@ type ``Given a DateTimeOffset`` () =
         8928 |> should equal v.Length
         Array.sub v index.Value 12 |> should equal (Array.init 12 (fun _ -> Nullable<float32>()))    
 
+    [<Test>]
+    member test.``I can find the bounding halfhours for a non-halfhour time``() = 
+        let d = DateTimeOffset(2012, 03, 01, 0, 15, 0, TimeSpan.Zero)
+        let lower,upper = DateTimeOffset.boundingHalfhours true d
+        lower |> should equal (DateTimeOffset(2012, 03, 01, 0, 0, 0, TimeSpan.Zero))
+        upper |> should equal (DateTimeOffset(2012, 03, 01, 0, 30, 0, TimeSpan.Zero))
+
+    [<Test>]
+    member test.``I can find the bounding halfhours for a halfhour time defaulting to lower bound``() = 
+        let d = DateTimeOffset(2012, 03, 01, 0, 0, 0, TimeSpan.Zero)
+        let lower,upper = DateTimeOffset.boundingHalfhours true d
+        lower |> should equal d
+        upper |> should equal (d.AddMinutes(30.0))
+
+    [<Test>]
+    member test.``I can find the bounding halfhours for a halfhour time defaulting to upper bound``() = 
+        let d = DateTimeOffset(2012, 03, 01, 0, 0, 0, TimeSpan.Zero)
+        let lower,upper = DateTimeOffset.boundingHalfhours false d
+        lower |> should equal (d.AddMinutes(-30.0))
+        upper |> should equal d

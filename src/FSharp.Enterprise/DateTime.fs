@@ -9,14 +9,15 @@ module DateTime =
     type TimeBoundary =
         | Minute
         | Halfhour
-    
+        | Day
+
     type ClockChangeType =
           | NoClockChange
           | Short
           | Long
 
 
-    let zeroMinutes = TimeSpan.FromMinutes(0.0)
+    let zero = TimeSpan.FromMinutes(0.0)
     let thirtyMinutes = TimeSpan.FromMinutes(30.0)
     
 
@@ -148,20 +149,27 @@ module DateTime =
             | Minute ->
                 let d = DateTime(x.Year, x.Month, x.Day, x.Hour, x.Minute, 0)
                 let delta = x - d
-                if delta = zeroMinutes then
+                if delta = zero then
                     d
                 else
                     d.AddMinutes(1.0)            
             | Halfhour ->
                 let d = DateTime(x.Year, x.Month, x.Day, x.Hour, 0, 0)
                 let delta = x - d
-                if delta = zeroMinutes then
+                if delta = zero then
                     d
                 elif delta <= thirtyMinutes then
                     d.AddMinutes(30.0)
                 else
                     d.AddMinutes(60.0)
-    
+            | Day ->
+                let d = DateTime(x.Year, x.Month, x.Day, 0, 0, 0)
+                let delta = x - d
+                if delta = zero then
+                    d
+                else
+                    d.AddDays(1.0) 
+
         [<Extension>]
         member x.Floor(timeBoundary:TimeBoundary) =
             match timeBoundary with
@@ -174,19 +182,29 @@ module DateTime =
                     d
                 else
                     d.AddMinutes(30.0)
+            | Day ->
+                DateTime(x.Year, x.Month, x.Day, 0, 0, 0)
 
         [<Extension>]
         member x.Round(timeBoundary:TimeBoundary) =
             match timeBoundary with
             | Minute ->
-                if x.Second <= 30
-                then x.Floor(timeBoundary)
-                else x.Ceil(timeBoundary) 
+                let d = DateTime(x.Year, x.Month, x.Day, x.Hour, x.Minute, 0)
+                let delta = x - d
+                if delta <= TimeSpan.FromSeconds(30.0)
+                then d
+                else d.AddMinutes(1.0) 
             | Halfhour ->
                 if (x.Minute % 30) <= 15
                 then x.Floor(timeBoundary)
                 else x.Ceil(timeBoundary) 
-    
+            | Day ->
+                let d = DateTime(x.Year, x.Month, x.Day, 0, 0, 0)
+                let delta = x - d
+                if delta <= TimeSpan.FromHours(12.0)
+                then d
+                else d.AddDays(1.0) 
+                
     let roundMinute (d:DateTime) = d.Round(TimeBoundary.Minute)
     let ceilMinute (d:DateTime) = d.Ceil(TimeBoundary.Minute)
     let floorMinute (d:DateTime) = d.Floor(TimeBoundary.Minute)
@@ -310,19 +328,26 @@ module DateTimeOffset =
             | Minute ->
                 let d = DateTimeOffset(x.Year, x.Month, x.Day, x.Hour, x.Minute, 0, x.Offset)
                 let delta = x - d
-                if delta = zeroMinutes then
+                if delta = zero then
                     d
                 else
                     d.AddMinutes(1.0)            
             | Halfhour ->
                 let d = DateTimeOffset(x.Year, x.Month, x.Day, x.Hour, 0, 0, x.Offset)
                 let delta = x - d
-                if delta = zeroMinutes then
+                if delta = zero then
                     d
                 elif delta <= thirtyMinutes then
                     d.AddMinutes(30.0)
                 else
                     d.AddMinutes(60.0)
+            | Day ->
+                let d = DateTimeOffset(x.Year, x.Month, x.Day, 0, 0, 0, x.Offset)
+                let delta = x - d
+                if delta = zero then
+                    d
+                else
+                    d.AddDays(1.0) 
     
         [<Extension>]
         member x.Floor(timeBoundary:TimeBoundary) =
@@ -336,18 +361,28 @@ module DateTimeOffset =
                     d
                 else
                     d.AddMinutes(30.0)
+            | Day ->
+                DateTimeOffset(x.Year, x.Month, x.Day, 0, 0, 0, x.Offset)
     
         [<Extension>]
         member x.Round(timeBoundary:TimeBoundary) =
             match timeBoundary with
             | Minute ->
-                if x.Second <= 30
-                then x.Floor(timeBoundary)
-                else x.Ceil(timeBoundary) 
+                let d = DateTimeOffset(x.Year, x.Month, x.Day, x.Hour, x.Minute, 0, x.Offset)
+                let delta = x - d
+                if delta <= TimeSpan.FromSeconds(30.0)
+                then d
+                else d.AddMinutes(1.0) 
             | Halfhour ->
                 if (x.Minute % 30) <= 15
                 then x.Floor(timeBoundary)
                 else x.Ceil(timeBoundary) 
+            | Day ->
+                let d = DateTimeOffset(x.Year, x.Month, x.Day, 0, 0, 0, x.Offset)
+                let delta = x - d
+                if delta <= TimeSpan.FromHours(12.0)
+                then d
+                else d.AddDays(1.0) 
     
     let roundMinute (d:DateTimeOffset) = d.Round(TimeBoundary.Minute)
     let ceilMinute (d:DateTimeOffset) = d.Ceil(TimeBoundary.Minute)
@@ -357,6 +392,24 @@ module DateTimeOffset =
     let ceilHalfhour (d:DateTimeOffset) = d.Ceil(TimeBoundary.Halfhour)
     let floorHalfhour (d:DateTimeOffset) = d.Floor(TimeBoundary.Halfhour)
 
+    let roundDay (d:DateTimeOffset) = d.Round(TimeBoundary.Day)
+    let ceilDay (d:DateTimeOffset) = d.Ceil(TimeBoundary.Day)
+    let floorDay (d:DateTimeOffset) = d.Floor(TimeBoundary.Day)
+
+    /// Returns the halfhours surrounding the given time. 
+    /// When the give time is on the halfhour then if defaultToLowerBound
+    /// is true then the given time is used as the lower bound otherwise
+    /// it is used as the upper bound.
+    let boundingHalfhours defaultToLowerBound (d:DateTimeOffset) =
+        let halfhourStart = floorHalfhour d
+        let halfhourEnd = ceilHalfhour d
+        if halfhourStart = halfhourEnd then
+            if defaultToLowerBound then
+                halfhourStart,halfhourEnd.AddMinutes(30.0)
+            else
+                halfhourStart.AddMinutes(-30.0),halfhourEnd
+        else
+            halfhourStart,halfhourEnd
 
     let computeShortLongHourIndicies (date : DateTimeOffset) (granularity : TimeSpan) = 
         let toOption (i : int) = if i >= 0 then Some(i) else None
