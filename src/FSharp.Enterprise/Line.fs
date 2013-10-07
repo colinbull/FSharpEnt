@@ -125,7 +125,7 @@ module Line =
         Array.fold f state line.Segments 
 
     let inline sumBy f line =
-        fold (fun state segment -> f segment |> Option.accumulate state) None line
+        fold (fun state segment -> f segment + state) LanguagePrimitives.GenericZero line
 
     let endXs line =
         line 
@@ -280,7 +280,7 @@ module Line =
     
         open System
 
-        type T<'v> = T<DateTimeOffset,'v option>
+        type T<'v> = T<DateTimeOffset,'v>
 
         let intersections l1 l2 =
             [|

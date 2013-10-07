@@ -22,7 +22,7 @@ module Point =
 
         open System
 
-        type T<'v> = T<DateTimeOffset,'v option>
+        type T<'v> = T<DateTimeOffset,'v>
     
         let time (p:T<'v>) = p.X
         let value (p:T<'v>) = p.Y

@@ -233,18 +233,20 @@ module Segment =
                     | Some f -> f t s
                     | None -> startY s
             if isInRange intervalType t s 
-            then interpolate s
+            then Some (interpolate s)
             else None
 
-        let tryInterpolateValue<[<Measure>]'u> (time:DateTimeOffset) (s:T<float<'u> option>) =
-            match startY s, endY s with
-            | Some y0, Some y1 ->
+        let tryInterpolateValue<[<Measure>]'u> (time:DateTimeOffset) (s:T<float<'u>>) =
+            if isInRange IntervalType.T.Closed time s then
+                let y0 = startY s
+                let y1 = endY s
                 let startX = float (startX s).Ticks
                 let endX = float (endX s).Ticks
                 let x = float time.Ticks
                 let y = Math.Interpolation.linear x startX y0 endX y1
                 Some y
-            | _ -> None 
+            else
+                None 
 
         let interpolateValue<[<Measure>]'u> (time:DateTimeOffset) (s:T<float<'u>>) =
             let y0, y1 = startY s, endY s
@@ -253,15 +255,15 @@ module Segment =
             let x = float time.Ticks
             Math.Interpolation.linear x startX y0 endX y1
 
-        let tryInterpolateTime value (s:T<float<'u> option>) = 
-            if isInDomain IntervalType.T.Closed (Some value) s then
+        let tryInterpolateTime value (s:T<float<'u>>) = 
+            if isInDomain IntervalType.T.Closed value s then
                 if isFlatDomain s then
                     Some (startX s)
                 else
                     let x0 = float (startX s).Ticks
                     let x1 = float (endX s).Ticks
-                    let y0 = Option.get (startY s)
-                    let y1 = Option.get (endY s) 
+                    let y0 = startY s
+                    let y1 = endY s 
                     let x = Math.Interpolation.linear value y0 x0 y1 x1
                     Some (DateTimeOffset(int64 x, (startX s).Offset))
             else
@@ -278,16 +280,17 @@ module Segment =
                 let x = Math.Interpolation.linear value y0 x0 y1 x1
                 (DateTimeOffset(int64 x, (startX s).Offset))               
 
-        let intersection<[<Measure>]'u> (s1:T<float<'u> option>) (s2:T<float<'u> option>) : Point.Time.T<float<'u>> option=
-            match startY s1, endY s1, startY s2, endY s2 with
-            | Some y0, Some y1, Some y2, Some y3 ->
-                let x0 = float (startX s1).Ticks
-                let x1 = float (endX s1).Ticks
-                let x2 = float (startX s2).Ticks
-                let x3 = float (endX s2).Ticks
-                Math.intersection x0 (float y0) x1 (float y1) x2 (float y2) x3 (float y3)
-                |> Option.getOrElseWith None (fun (t,v) ->
-                    let time = DateTimeOffset(int64 t, (startX s1).Offset)
-                    let value = LanguagePrimitives.FloatWithMeasure<'u> v 
-                    Some(Point.make(time, Some value)))
-            | _ -> None
+        let intersection<[<Measure>]'u> (s1:T<float<'u>>) (s2:T<float<'u>>) =
+            let y0 = startY s1
+            let y1 = endY s1
+            let y2 = startY s2
+            let y3 = endY s2
+            let x0 = float (startX s1).Ticks
+            let x1 = float (endX s1).Ticks
+            let x2 = float (startX s2).Ticks
+            let x3 = float (endX s2).Ticks
+            Math.intersection x0 (float y0) x1 (float y1) x2 (float y2) x3 (float y3)
+            |> Option.getOrElseWith None (fun (t,v) ->
+                let time = DateTimeOffset(int64 t, (startX s1).Offset)
+                let value = LanguagePrimitives.FloatWithMeasure<'u> v 
+                Some(Point.make(time, value)))
