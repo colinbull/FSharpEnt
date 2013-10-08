@@ -10,6 +10,12 @@ module Line =
     open FSharpx
     open FSharpx.Option
     open FSharp.Enterprise.OptionOperators
+//
+//    type LineType =
+//        | InstantaneousSegments of Segment.T<_,_>
+//        | DiscreteSegments of IntervalType.T
+//        | ContinuousSegments
+//
 
     type LineType =
         | InstantaneousSegments
@@ -100,10 +106,10 @@ module Line =
         Option.map Point.x (endPoint line)
 
     let startY line = 
-        Option.getOrElseWith None Point.y (startPoint line)
+        Option.map Point.y (startPoint line)
 
     let endY line = 
-        Option.getOrElseWith None Point.y (endPoint line)
+        Option.map Point.y (endPoint line)
 
     let range line =
         (fun t1 t2 -> Interval.make(t1,t2)) <!> startX line <*> endX line

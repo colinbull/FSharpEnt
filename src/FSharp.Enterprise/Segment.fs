@@ -56,6 +56,10 @@ module Segment =
         | Discrete (i,_) -> i 
         | Continuous (p1,p2) -> Interval.make(p1.X,p2.X)
 
+    let unmake s =
+        let p1,p2 = startPoint s, endPoint s
+        p1.X,p1.Y,p2.X,p2.Y
+
     let isInRange intervalType x s =
         range s |> Interval.isIn intervalType x 
 
