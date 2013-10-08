@@ -108,6 +108,10 @@ module Line =
     let range line =
         (fun t1 t2 -> Interval.make(t1,t2)) <!> startX line <*> endX line
 
+    let inline choose f line =
+        let segments = Array.choose f line.Segments
+        { Type = line.Type; Segments = segments }   
+
     let inline map f line =
         let segments = Array.map f line.Segments
         { Type = line.Type; Segments = segments }   
