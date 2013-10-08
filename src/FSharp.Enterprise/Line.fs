@@ -10,12 +10,6 @@ module Line =
     open FSharpx
     open FSharpx.Option
     open FSharp.Enterprise.OptionOperators
-//
-//    type LineType =
-//        | InstantaneousSegments of Segment.T<_,_>
-//        | DiscreteSegments of IntervalType.T
-//        | ContinuousSegments
-//
 
     type LineType =
         | InstantaneousSegments
