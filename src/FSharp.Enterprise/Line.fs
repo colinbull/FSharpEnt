@@ -16,6 +16,9 @@ module Line =
     let make (ctorF:'a -> Segment.T<'b,'c>) (args:seq<'a>) : T<'b,'c> = 
         Line(args |> Seq.map ctorF |> Seq.toArray)
 
+    let empty =
+        Line(Array.empty)
+
     let ofSegments segs = 
         Line (segs |> Seq.toArray)
 

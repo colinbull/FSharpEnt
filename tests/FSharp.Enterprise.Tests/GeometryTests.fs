@@ -485,6 +485,12 @@ type ``Given the TimeLine module`` () =
 type ``Given a continuous TimeLine`` () =
 
     [<Test>]
+    member x.``I can create an empty line`` () =
+        let actual = Line.empty
+        let expected = Line.make Segment.makeContinuous []
+        actual |> should equal expected 
+
+    [<Test>]
     member x.``I can take a slice of the timeline with a single element`` () =
         let points = Helper.getPoints Helper.d0 30.0 [| 0.0; 100.|]        
         let line = Line.make Segment.makeContinuous (Seq.pairwise points)
