@@ -11,80 +11,26 @@ module Line =
     open FSharpx.Option
     open FSharp.Enterprise.OptionOperators
 
-    type LineType =
-        | InstantaneousSegments
-        | DiscreteSegments of IntervalType.T
-        | ContinuousSegments
+    type T<'x,'y> = | Line of Segment.T<'x,'y> array
 
-    type T<'x,'y> = {
-        Type : LineType
-        Segments : Segment.T<'x,'y> array
-    }
+    let make (ctorF:'a -> Segment.T<'b,'c>) (args:seq<'a>) : T<'b,'c> = 
+        Line(args |> Seq.map ctorF |> Seq.toArray)
 
-    let inline checkLineType argName ``type`` line = 
-        if line.Type <> ``type`` then
-            let message = sprintf "invalid line type: expected %A but was %A" ``type`` line.Type
-            invalidArg argName message
+    let ofSegments segs = 
+        Line (segs |> Seq.toArray)
 
-    let makeFromSegments lineType segments = { Type = lineType; Segments = segments |> Seq.toArray }
-    let makeDiscreteFromSegments intervalType segments = makeFromSegments (DiscreteSegments intervalType) segments
-    let makeContinuousFromSegments segments = makeFromSegments ContinuousSegments segments
-                                
-    let make lineType points =             
-        let segments =
-            match lineType with
-            | InstantaneousSegments ->
-                points 
-                |> Seq.map Segment.makeInstantaneous 
-                |> Seq.toArray
-            | DiscreteSegments _ ->
-                if Seq.length points = 1 then
-                    let p = Seq.head points
-                    [| Segment.makeDiscrete (Interval.make(p.X,p.X), p.Y) |]
-                else
-                    Seq.pairwise points
-                    |> Seq.map (fun (p1,p2) -> Segment.makeDiscrete (Interval.make(p1.X,p2.X), p1.Y))
-                    |> Seq.toArray
-            | ContinuousSegments _ ->
-                if Seq.length points = 1 then
-                    let p = Seq.head points
-                    [| Segment.makeContinuous (p,p) |]
-                else             
-                    Seq.pairwise points
-                    |> Seq.map Segment.makeContinuous 
-                    |> Seq.toArray
-        makeFromSegments lineType segments
+    let isEmpty (Line(segments)) = (Array.isEmpty segments)
 
-    let makeInstantaneous points = make LineType.InstantaneousSegments points
-    let makeDiscrete intervalType points = make (LineType.DiscreteSegments intervalType) points
-    let makeContinuous points = make LineType.ContinuousSegments points
+    let segments (Line(segments)) = segments 
 
-    let empty lineType = makeFromSegments lineType [||]
-    let emptyInstantaneous () = empty LineType.InstantaneousSegments
-    let emptyDiscrete intervalType = empty (LineType.DiscreteSegments intervalType)
-    let emptyContinuous () = empty LineType.ContinuousSegments
-    let isEmpty line = line.Segments.Length = 0
-
-    let segmentIntervalType line = 
-        match line.Type with
-        | InstantaneousSegments 
-        | ContinuousSegments -> IntervalType.T.Closed
-        | DiscreteSegments intervalType -> intervalType
-
-    let segments line =
-        line.Segments
-
-    let segmentCount line =
-        line.Segments.Length
-
-    let startSegment line =
-        if segmentCount line > 0 
-        then Some line.Segments.[0]
+    let startSegment (Line(segments)) =
+        if segments.Length > 0 
+        then Some segments.[0]
         else None
             
-    let endSegment line =
-        if segmentCount line > 0 
-        then Some line.Segments.[(segmentCount line) - 1]
+    let endSegment (Line(segments)) =
+        if segments.Length > 0
+        then Some segments.[segments.Length - 1]
         else None
 
     let startPoint line =
@@ -108,25 +54,20 @@ module Line =
     let range line =
         (fun t1 t2 -> Interval.make(t1,t2)) <!> startX line <*> endX line
 
-    let inline choose f line =
-        let segments = Array.choose f line.Segments
-        { Type = line.Type; Segments = segments }   
+    let inline choose f (Line(segments)) =
+        Line(Array.choose f segments)   
 
-    let inline map f line =
-        let segments = Array.map f line.Segments
-        { Type = line.Type; Segments = segments }   
+    let inline map f (Line(segments)) =
+        Line(Array.map f segments) 
 
-    let inline map2 f l1 l2 =
-        if l1.Type <> l2.Type then (invalidArg "l2" "line types differ")
-        let segments = Array.map2 f l1.Segments l2.Segments
-        { Type = l1.Type; Segments = segments }   
+    let inline map2 f (Line(s1)) (Line(s2)) =
+        Line(Array.map2 f s1 s2)
 
-    let inline mapY f line =
-        let segments = Array.map (Segment.mapY f) line.Segments 
-        { Type = line.Type; Segments = segments }   
+    let inline mapY f (Line(segments)) =
+        Line(Array.map (Segment.mapY f) segments)
 
-    let fold f state line =
-        Array.fold f state line.Segments 
+    let fold f state (Line(segments)) =
+        Array.fold f state segments 
 
     let inline sumBy f line =
         fold (fun state segment -> f segment + state) LanguagePrimitives.GenericZero line
@@ -142,20 +83,18 @@ module Line =
         |> List.rev
 
     let xs line =
-        match line.Type with
-        | LineType.InstantaneousSegments -> startXs line
-        | _ -> 
-            match startX line with
-            | Some startX -> startX :: endXs line
-            | _ -> []
+        match startX line with
+        | Some startX -> startX :: endXs line
+        | _ -> []
+        |> Seq.distinct
 
     /// Returns true if the predicate applied to any segments returns true, otherwise false.
-    let exists p line =
-        Array.exists p line.Segments
+    let exists p (Line(segments)) =
+        Array.exists p segments
 
     /// Returns true if the predicate applied to all segments returns true, otherwise false.
-    let forall p line =
-        Array.forall p line.Segments
+    let forall p (Line(segments)) =
+        Array.forall p segments
 
     /// Returns true if the predicate applied to any segments returns true, otherwise false.
     let existsPoint p line =
@@ -173,112 +112,95 @@ module Line =
     let forallY p line =
         forall (Segment.forallY p) line
 
-    let tryPick chooser line =
-        Array.tryPick chooser line.Segments
+    let tryPick chooser (Line(segments)) =
+        Array.tryPick chooser segments
 
-    let inline intersections l1 l2 =
+    let inline intersections (Line(s1s)) (Line(s2s)) =
         [|
-            for s1 in l1.Segments do
-                for s2 in l2.Segments do
+            for s1 in s1s do
+                for s2 in s2s do
                     match Segment.intersection s1 s2 with
                     | Some point -> yield point
                     | None -> ()
         |]
 
-    let tryFindSegment x line =        
-        Array.tryFind (Segment.isInRange (segmentIntervalType line) x) line.Segments
+    let tryFindSegment x (Line(segments)) =        
+        Array.tryFind (fun s -> Segment.isInRange (Segment.intervalType s) x s) segments
 
-    let tryFindValue segmentInterpolateF x line =            
-        Array.tryPick (Segment.tryFindValue segmentInterpolateF (segmentIntervalType line) x) line.Segments
+    let tryFindValue segmentInterpolateF x (Line(segments)) =            
+        Array.tryPick (fun s -> Segment.tryFindValue segmentInterpolateF (Segment.intervalType s) x s) segments
 
-    let tryFindValues segmentInterpolateF x line =
-        Array.choose (Segment.tryFindValue segmentInterpolateF (segmentIntervalType line) x) line.Segments
+    let tryFindValues segmentInterpolateF x (Line(segments)) =
+        Array.choose (fun s -> Segment.tryFindValue segmentInterpolateF (Segment.intervalType s) x s) segments
 
-    let toPoints line =
-        match line.Type with
-        | InstantaneousSegments -> 
-            Array.fold (fun points segment -> Segment.startPoint segment :: points) [] line.Segments
-        | DiscreteSegments _
-        | ContinuousSegments _ ->
-            match endPoint line with
-            | Some endPoint ->
-                let startPoints = Array.fold (fun points segment -> Segment.startPoint segment :: points) [] line.Segments
-                endPoint :: startPoints
-            | None -> []
+    let toPoints (Line(segments) as line)  =
+        match endPoint line with
+        | Some endPoint ->
+            let startPoints = Array.fold (fun points segment -> Segment.startPoint segment :: points) [] segments
+            endPoint :: startPoints
+        | None -> []
         |> List.rev
+        |> Seq.distinct
 
-    let slice segmentInterpolateF interval line =
-        let segments = 
-            match line.Type with
-            | InstantaneousSegments ->
-                Array.filter (fun segment -> Interval.isIn IntervalType.T.Closed (Segment.startX segment) interval) line.Segments
-            | DiscreteSegments _ ->
-                line.Segments
-                |> Array.choose (fun seg -> 
-                    match (interval, seg) with
-                    | Segment.Overlap (iStart, iEnd, seg) ->
-                        Some (Segment.makeDiscrete (interval, Segment.startY seg))
-                    | Segment.Internal (_,_,seg) -> 
-                        Some(seg)
-                    | Segment.External (_,_,seg) -> 
-                        None
-                    | Segment.OverlapStart (dt,_,seg) ->
-                        Some (Segment.map (fun (s,e) -> Point.mapX (fun _ -> dt) s, e) seg)
-                    | Segment.OverlapEnd (_,dt,seg) ->
-                        Some (Segment.map (fun (s,e) -> s, Point.make(dt,s.Y)) seg))
-            | ContinuousSegments _ ->
-                let sif = Option.get segmentInterpolateF
-                line.Segments
-                |> Array.choose (fun seg -> 
-                    match (interval, seg) with
-                    | Segment.Overlap (iStart, iEnd, seg) ->
-                        Some (Segment.map (fun (s,e) -> 
-                                    Point.make (iStart, sif iStart seg), 
-                                    Point.make (iEnd, sif iEnd seg)) seg)
-                    | Segment.Internal (_,_,seg) -> 
-                        Some(seg)
-                    | Segment.External (_,_,seg) -> 
-                        None
-                    | Segment.OverlapStart (dt,_,seg) ->
-                        Some (Segment.map (fun (s,e) -> Point.make (dt, sif dt seg), e) seg)
-                    | Segment.OverlapEnd (_,dt,seg) ->
-                        Some (Segment.map (fun (s,e) -> s, Point.make (dt, sif dt seg)) seg))
-        { Type = line.Type; Segments = segments}
+    let slice segmentInterpolateF interval (Line(segments)) =
+        segments
+        |> Array.choose (fun s -> 
+            match s with
+            | Segment.Instantaneous _ -> 
+                if Interval.isIn IntervalType.T.Closed (Segment.startX s) interval then Some s else None
+            | Segment.Discrete (t,_,_) -> 
+                match (interval, s) with
+                | Segment.Overlap (iStart, iEnd, s) ->
+                    Some (Segment.makeDiscrete (t, interval, Segment.startY s))
+                | Segment.Internal (_,_,s) -> 
+                    Some(s)
+                | Segment.External (_,_,s) -> 
+                    None
+                | Segment.OverlapStart (dt,_,s) ->
+                    Some (Segment.map (fun (p1,p2) -> Point.mapX (fun _ -> dt) p1, p2) s)
+                | Segment.OverlapEnd (_,dt,seg) ->
+                    Some (Segment.map (fun (p1,p2) -> p1, Point.make(dt,p1.Y)) s)
+            | Segment.Continuous _ ->
+                 let sif = Option.get segmentInterpolateF
+                 match (interval, s) with
+                 | Segment.Overlap (iStart, iEnd, seg) ->
+                     Some (Segment.map (fun _ -> 
+                                 Point.make (iStart, sif iStart seg), 
+                                 Point.make (iEnd, sif iEnd seg)) seg)
+                 | Segment.Internal (_,_,seg) -> 
+                     Some(seg)
+                 | Segment.External (_,_,seg) -> 
+                     None
+                 | Segment.OverlapStart (dt,_,seg) ->
+                     Some (Segment.map (fun (_,p2) -> Point.make (dt, sif dt seg), p2) seg)
+                 | Segment.OverlapEnd (_,dt,seg) ->
+                     Some (Segment.map (fun (p1,p2) -> p1, Point.make (dt, sif dt seg)) seg) 
+        ) |> ofSegments
 
-    let append segmentInterpolateF line1 line2 =
-        //checkLineType "line1" LineType.ContinuousSegments line1
-        //checkLineType "line2" LineType.ContinuousSegments line2
+    let append segmentInterpolateF (Line(s1s) as line1) (Line(s2s) as line2) =
         match startX line1, startX line2 with
         | Some startX, Some endX ->             
             let interval = Interval.make(startX, endX)
-            let line1Slice = slice segmentInterpolateF interval line1
-            let segments = Array.append line1Slice.Segments line2.Segments
-            { Type = line1.Type; Segments = segments}
+            let (Line(line1SliceS)) = slice segmentInterpolateF interval line1
+            let segments = Array.append line1SliceS s2s
+            Line(segments)
         | None, Some _ ->
             line2
         | _ ->
             line1
 
-    let ofInterval lineType interval  =
-        let segments =
-            match lineType with
-            | InstantaneousSegments -> [| Segment.emptyInstantaneous (Interval.left interval) |]
-            | DiscreteSegments _ -> [| Segment.emptyDiscrete interval |]
-            | ContinuousSegments _ -> [| Segment.emptyContinuous interval |]
-        makeFromSegments lineType segments
-
-    let inline area unitF line =
-        Array.map (Segment.area unitF) line.Segments
+    let inline area unitF (Line(segments)) =
+        Array.map (Segment.area unitF) segments
         |> Array.sum
 
-    let inline tryArea unitF line =
-        Array.choose (Segment.tryArea unitF) line.Segments
+    let inline tryArea unitF (Line(segments)) =
+        Array.choose (Segment.tryArea unitF) segments
         |> Array.sum
 
-    let inline divide interpolateF xs line = 
-        line.Segments
+    let inline divide interpolateF xs (Line(segments)) = 
+        segments
         |> Seq.collect (Segment.divide interpolateF xs)
-        |> makeContinuousFromSegments
+        |> ofSegments
 
     module Time =
     
@@ -286,24 +208,25 @@ module Line =
 
         type T<'v> = T<DateTimeOffset,'v>
 
-        let intersections l1 l2 =
+        let tryFindValue segmentInterpolateF time (Line(segments)) =            
+            Array.tryPick (fun s -> Segment.Time.tryFindValue segmentInterpolateF (Segment.intervalType s) time s) segments
+
+        let intersections (Line(s1s)) (Line(s2s)) =
             [|
-                for s1 in l1.Segments do
-                    for s2 in l2.Segments do
+                for s1 in s1s do
+                    for s2 in s2s do
                         match Segment.Time.intersection s1 s2 with
                         | Some point -> yield point
                         | None -> ()
             |]
 
-        let tryFindValue segmentInterpolateF time l =            
-            Array.tryPick (Segment.Time.tryFindValue segmentInterpolateF (segmentIntervalType l) time) l.Segments
 
         /// Returns true if the predicate applied to the value at time t returns true, otherwise false.
         let isValueAtTime segmentInterpolateF t p (line:T<'v>) : bool =
             (tryFindValue segmentInterpolateF t >> p) line
 
-        let toSeq segmentInterpolateF timeSpan line =
+        let toSeq intervalType segmentInterpolateF timeSpan line =
             range line
             |> Option.getOrElseWith Seq.empty (fun interval ->
-                Interval.Time.toSeq IntervalType.T.Closed timeSpan interval
+                Interval.Time.toSeq intervalType timeSpan interval
                 |> Seq.map (fun time -> tryFindValue segmentInterpolateF time line))

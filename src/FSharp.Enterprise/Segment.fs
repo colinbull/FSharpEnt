@@ -10,25 +10,29 @@ module Segment =
 
     type T<'x,'y> =
         | Instantaneous of Point.T<'x,'y>
-        | Discrete of Interval.T<'x> * 'y
+        | Discrete of IntervalType.T * Interval.T<'x> * 'y
         | Continuous of Point.T<'x,'y> * Point.T<'x,'y>
 
     let makeInstantaneous p = Instantaneous p
-    let makeDiscrete (i,v) = Discrete (i,v)
+    let makeDiscrete (t, i,v) = Discrete (t, i,v)
     let makeContinuous (p1,p2) = Continuous (p1,p2)
 
     let emptyInstantaneous x = Instantaneous (Point.empty x)
-    let emptyDiscrete i = Discrete (i,Unchecked.defaultof<'y>)
+    let emptyDiscrete t i = Discrete (t, i,Unchecked.defaultof<'y>)
     let emptyContinuous i = Continuous (Point.empty (Interval.left i),Point.empty (Interval.right i))
+
+    let intervalType = function
+         | Continuous _ | Instantaneous _ -> IntervalType.T.Closed
+         | Discrete (t,_,_) -> t 
 
     let startPoint = function
         | Instantaneous p -> p
-        | Discrete (i,v) -> Point.make(Interval.left i,v) 
+        | Discrete (_,i,v) -> Point.make(Interval.left i,v) 
         | Continuous (p,_) -> p
 
     let endPoint = function
         | Instantaneous p -> p
-        | Discrete (i,v) -> Point.make(Interval.right i,v) 
+        | Discrete (_,i,v) -> Point.make(Interval.right i,v) 
         | Continuous (_,p) -> p    
 
     let unmake s =
@@ -37,27 +41,27 @@ module Segment =
 
     let startX = function
         | Instantaneous p -> p.X
-        | Discrete (i,_) -> Interval.left i 
+        | Discrete (_,i,_) -> Interval.left i 
         | Continuous (p,_) -> p.X
 
     let startY = function
         | Instantaneous p -> p.Y
-        | Discrete (_,v) -> v 
+        | Discrete (_,_,v) -> v 
         | Continuous (p,_) -> p.Y
 
     let endX = function
         | Instantaneous p -> p.X
-        | Discrete (i,_) -> Interval.right i 
+        | Discrete (_,i,_) -> Interval.right i 
         | Continuous (_,p) -> p.X
 
     let endY = function
         | Instantaneous p -> p.Y
-        | Discrete (_,v) -> v 
+        | Discrete (_,_,v) -> v 
         | Continuous (_,p) -> p.Y
 
     let range = function
         | Instantaneous p -> Interval.make(p.X,p.X)
-        | Discrete (i,_) -> i 
+        | Discrete (_,i,_) -> i 
         | Continuous (p1,p2) -> Interval.make(p1.X,p2.X)
 
     let isInRange intervalType x s =
@@ -65,7 +69,7 @@ module Segment =
 
     let domain = function
         | Instantaneous p -> Interval.make(p.Y,p.Y)
-        | Discrete (_,v) -> Interval.make(v,v) 
+        | Discrete (_,_,v) -> Interval.make(v,v) 
         | Continuous (p1,p2) -> Interval.make(p1.Y,p2.Y)
 
     let isInDomain intervalType y s =
@@ -76,25 +80,26 @@ module Segment =
 
     let map f = function 
         | Instantaneous p -> makeInstantaneous (fst (f (p,p)))
-        | Discrete _ as s -> f (startPoint s, endPoint s) |> (fun (p1,p2:Point.T<'a,'b>) -> makeDiscrete (Interval.make(p1.X,p2.X),p1.Y)) 
+        | Discrete (t,_,_) as s -> f (startPoint s, endPoint s) |> (fun (p1,p2:Point.T<'a,'b>) -> makeDiscrete (t, Interval.make(p1.X,p2.X),p1.Y)) 
         | Continuous (p1,p2) -> makeContinuous (f (p1,p2))
        
     let mapX f = function
         | Instantaneous p -> makeInstantaneous (Point.mapX f p)
-        | Discrete (_, v) as s -> makeDiscrete (Interval.make(f (startX s), f (endX s)), v) 
+        | Discrete (t,_, v) as s -> makeDiscrete (t, Interval.make(f (startX s), f (endX s)), v) 
         | Continuous (p1,p2) -> makeContinuous (Point.mapX f p1, Point.mapX f p2)
        
     let mapY f = function
         | Instantaneous p -> makeInstantaneous (Point.mapY f p)
-        | Discrete (i, v) -> makeDiscrete (i, f v) 
+        | Discrete (t, i, v) -> makeDiscrete (t, i, f v) 
         | Continuous (p1,p2) -> makeContinuous (Point.mapY f p1, Point.mapY f p2)
 
     let mapY2 f s1 s2 = 
         match s1, s2 with
         | Instantaneous p1, Instantaneous p2 when p1.X = p2.X -> 
                 makeInstantaneous (Point.make(p1.X, f p1.Y p2.Y))
-        | Discrete (i1, v1), Discrete(i2, v2) when i1 = i2 ->
-                makeDiscrete (i1, f v1 v2)
+        | Discrete (t1, i1, v1), Discrete(t2, i2, v2) when i1 = i2 ->
+                if t1 <> t2 then invalidArg "Interval Type" "The interval types must be consistent"
+                makeDiscrete (t1, i1, f v1 v2)
         | Continuous (p1, p1'), Continuous (p2, p2') when p1.X = p2.X && p1'.X = p2'.X -> 
                 makeContinuous (Point.make(p1.X, f p1.Y p2.Y), Point.make(p1'.X, f p1'.Y p2'.Y))
         | _ -> invalidArg "s2" "Time segments must be consistent with respect to time and type"
@@ -117,7 +122,7 @@ module Segment =
            
 
     let inline tryInterpolateY x s =
-        if isInRange IntervalType.T.Closed x s then
+        if isInRange (intervalType s) x s then
             let x0,y0 = startPoint s |> fun p -> p.X, p.Y 
             let x1,y1 = endPoint s |> fun p -> p.X, p.Y 
             let y = Math.Interpolation.linear x x0 y0 x1 y1
@@ -171,7 +176,7 @@ module Segment =
     let tryFindValue interpolateF intervalType x s = 
         let interpolate = function
             | Instantaneous p -> Some p.Y
-            | Discrete (_,value) -> Some value 
+            | Discrete (_,_,value) -> Some value 
             | Continuous (p1,p2) -> 
                 match interpolateF with
                 | Some f -> f x s
@@ -228,10 +233,10 @@ module Segment =
 
         let duration timeUnitF s = deltaTime s |> timeUnitF
 
-        let tryFindValue segmentInterpolateF intervalType (t:DateTimeOffset) s =   
+        let tryFindValue segmentInterpolateF intervalType (t:DateTimeOffset) s =               
             let interpolate = function
                 | Instantaneous p -> p.Y
-                | Discrete (_,value) -> value 
+                | Discrete (_,_,value) -> value 
                 | Continuous (p1,p2) -> 
                     match segmentInterpolateF with
                     | Some f -> f t s
@@ -239,6 +244,7 @@ module Segment =
             if isInRange intervalType t s 
             then Some (interpolate s)
             else None
+
 
         let tryInterpolateValue<[<Measure>]'u> (time:DateTimeOffset) (s:T<float<'u>>) =
             if isInRange IntervalType.T.Closed time s then
