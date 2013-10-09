@@ -1439,6 +1439,12 @@
  The scan is only done once.
 </summary>
 </member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
 <member name="M:Fake.FileSetHelper.AllFilesMatching(System.String)">
 <summary>
  Includes a single pattern and scans the files - !! x = AllFilesMatching x

@@ -966,9 +966,9 @@ type ``Given a Discrete TimeLine`` () =
 
     [<Test>]
     member x.``I can convert a line to a seq`` () =
-        let points = Helper.getPointsDiscrete IntervalType.T.LeftOpenRightClosed Helper.d0 30.0 [|0.0; 30.0; 60.0|]        
+        let points = Helper.getPointsDiscrete IntervalType.T.LeftClosedRightOpen Helper.d0 30.0 [|0.0; 30.0; 60.0|]        
         let line = Line.make Segment.makeDiscrete points
-        let actual = Line.Time.toSeq IntervalType.T.LeftOpenRightClosed None (TimeSpan.FromMinutes(1.0)) line |> Seq.toArray
+        let actual = Line.Time.toSeq IntervalType.T.LeftClosedRightOpen None (TimeSpan.FromMinutes(1.0)) line |> Seq.toArray
         let expected = 
             seq {
                 yield! Seq.init 30 (fun i -> Some 0.0); 
