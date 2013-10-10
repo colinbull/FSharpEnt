@@ -11,18 +11,20 @@ module Line =
     open FSharpx.Option
     open FSharp.Enterprise.OptionOperators
 
-    type T<'x,'y> = | Line of Segment.T<'x,'y> array
+    type T<'x,'y> = 
+        | Line of Segment.T<'x,'y> array
 
-    let make (ctorF:'a -> Segment.T<'b,'c>) (args:seq<'a>) : T<'b,'c> = 
-        Line(args |> Seq.map ctorF |> Seq.toArray)
+    let make ctorF args = 
+        Line(Seq.map ctorF args |> Seq.toArray)
 
-    let empty =
+    let empty = 
         Line(Array.empty)
+    
+    let isEmpty (Line(segments)) = 
+        Array.isEmpty segments
 
-    let ofSegments segs = 
-        Line (segs |> Seq.toArray)
-
-    let isEmpty (Line(segments)) = (Array.isEmpty segments)
+    let ofSegments segments = 
+        Line (Seq.toArray segments)
 
     let segments (Line(segments)) = segments 
 
@@ -37,10 +39,10 @@ module Line =
         else None
 
     let startPoint line =
-        line |> startSegment |> Option.map Segment.startPoint
+        startSegment line |> Option.map Segment.startPoint
             
     let endPoint line =
-        line |> endSegment |> Option.map Segment.endPoint
+        endSegment line |> Option.map Segment.endPoint
 
     let startX line = 
         Option.map Point.x (startPoint line)
@@ -63,8 +65,8 @@ module Line =
     let inline map f (Line(segments)) =
         Line(Array.map f segments) 
 
-    let inline map2 f (Line(s1)) (Line(s2)) =
-        Line(Array.map2 f s1 s2)
+    let inline map2 f (Line(s1s)) (Line(s2s)) =
+        Line(Array.map2 f s1s s2s)
 
     let inline mapY f (Line(segments)) =
         Line(Array.map (Segment.mapY f) segments)
@@ -76,13 +78,11 @@ module Line =
         fold (fun state segment -> f segment + state) LanguagePrimitives.GenericZero line
 
     let endXs line =
-        line 
-        |> fold (fun s segment -> Segment.endX segment :: s) []
+        fold (fun s segment -> Segment.endX segment :: s) [] line
         |> List.rev
 
     let startXs line =
-        line 
-        |> fold (fun s segment -> Segment.startX segment :: s) []
+        fold (fun state segment -> Segment.startX segment :: state) [] line
         |> List.rev
 
     let xs line =
@@ -147,7 +147,7 @@ module Line =
 
     let slice segmentInterpolateF interval (Line(segments)) =
         segments
-        |> Array.choose (fun s -> 
+        |> Array.choose (fun s ->
             match s with
             | Segment.Instantaneous _ -> 
                 if Interval.isIn IntervalType.T.Closed (Segment.startX s) interval then Some s else None
@@ -164,20 +164,20 @@ module Line =
                 | Segment.OverlapEnd (_,dt,seg) ->
                     Some (Segment.map (fun (p1,p2) -> p1, Point.make(dt,p1.Y)) s)
             | Segment.Continuous _ ->
-                 let sif = Option.get segmentInterpolateF
-                 match (interval, s) with
-                 | Segment.Overlap (iStart, iEnd, seg) ->
-                     Some (Segment.map (fun _ -> 
-                                 Point.make (iStart, sif iStart seg), 
-                                 Point.make (iEnd, sif iEnd seg)) seg)
-                 | Segment.Internal (_,_,seg) -> 
-                     Some(seg)
-                 | Segment.External (_,_,seg) -> 
-                     None
-                 | Segment.OverlapStart (dt,_,seg) ->
-                     Some (Segment.map (fun (_,p2) -> Point.make (dt, sif dt seg), p2) seg)
-                 | Segment.OverlapEnd (_,dt,seg) ->
-                     Some (Segment.map (fun (p1,p2) -> p1, Point.make (dt, sif dt seg)) seg) 
+                let sif = Option.get segmentInterpolateF
+                match (interval, s) with
+                | Segment.Overlap (iStart, iEnd, seg) ->
+                    Some (Segment.map (fun _ -> 
+                        Point.make (iStart, sif iStart seg), 
+                        Point.make (iEnd, sif iEnd seg)) seg)
+                | Segment.Internal (_,_,seg) -> 
+                    Some(seg)
+                | Segment.External (_,_,seg) -> 
+                    None
+                | Segment.OverlapStart (dt,_,seg) ->
+                    Some (Segment.map (fun (_,p2) -> Point.make (dt, sif dt seg), p2) seg)
+                | Segment.OverlapEnd (_,dt,seg) ->
+                    Some (Segment.map (fun (p1,p2) -> p1, Point.make (dt, sif dt seg)) seg) 
         ) |> ofSegments
 
     let append segmentInterpolateF (Line(s1s) as line1) (Line(s2s) as line2) =
@@ -201,9 +201,9 @@ module Line =
         |> Array.sum
 
     let inline divide interpolateF xs (Line(segments)) = 
-        segments
-        |> Seq.collect (Segment.divide interpolateF xs)
+        Seq.collect (Segment.divide interpolateF xs) segments
         |> ofSegments
+
 
     module Time =
     
@@ -222,7 +222,6 @@ module Line =
                         | Some point -> yield point
                         | None -> ()
             |]
-
 
         /// Returns true if the predicate applied to the value at time t returns true, otherwise false.
         let isValueAtTime segmentInterpolateF t p (line:T<'v>) : bool =

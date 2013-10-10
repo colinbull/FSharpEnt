@@ -96,80 +96,62 @@ module Segment =
     let mapY2 f s1 s2 = 
         match s1, s2 with
         | Instantaneous p1, Instantaneous p2 when p1.X = p2.X -> 
-                makeInstantaneous (Point.make(p1.X, f p1.Y p2.Y))
+            makeInstantaneous (Point.make(p1.X, f p1.Y p2.Y))
         | Discrete (t1, i1, v1), Discrete(t2, i2, v2) when i1 = i2 ->
-                if t1 <> t2 then invalidArg "Interval Type" "The interval types must be consistent"
-                makeDiscrete (t1, i1, f v1 v2)
+            if t1 <> t2 then invalidArg "Interval Type" "The interval types must be consistent"
+            makeDiscrete (t1, i1, f v1 v2)
         | Continuous (p1, p1'), Continuous (p2, p2') when p1.X = p2.X && p1'.X = p2'.X -> 
-                makeContinuous (Point.make(p1.X, f p1.Y p2.Y), Point.make(p1'.X, f p1'.Y p2'.Y))
+            makeContinuous (Point.make(p1.X, f p1.Y p2.Y), Point.make(p1'.X, f p1'.Y p2'.Y))
         | _ -> invalidArg "s2" "Time segments must be consistent with respect to time and type"
 
     let fold f state s =
         f state (startPoint s,endPoint s)
 
-    let (|OverlapStart|OverlapEnd|Overlap|Internal|External|) (interval,segment) =
-         let iStart, iEnd = Interval.left interval, Interval.right interval
-         let segStart, segEnd = startX segment, endX segment
-         if segEnd <= iStart || segStart >= iEnd
-         then External (iStart, iEnd, segment)
-         elif segStart >= iStart && segEnd <= iEnd
-         then Internal (iStart, iEnd, segment)
-         elif segStart < iStart && segEnd <= iEnd
-         then OverlapStart (iStart, iEnd,segment)
-         elif segStart >= iStart && segEnd > iEnd
-         then OverlapEnd (iStart, iEnd, segment)
-         else Overlap (iStart, iEnd, segment)
+    let (|OverlapStart|OverlapEnd|Overlap|Internal|External|) (interval,s) =
+        let l,r = Interval.left interval, Interval.right interval
+        let x0,x1 = startX s, endX s
+        if x1 <= l || x0 >= r
+        then External (l,r,s)
+        elif x0 >= l && x1 <= r
+        then Internal (l,r,s)
+        elif x0 < l && x1 <= r
+        then OverlapStart (l,r,s)
+        elif x0 >= l && x1 > r
+        then OverlapEnd (l,r,s)
+        else Overlap (l,r,s)
            
-
-    let inline tryInterpolateY x s =
-        if isInRange (intervalType s) x s then
-            let x0,y0 = startPoint s |> fun p -> p.X, p.Y 
-            let x1,y1 = endPoint s |> fun p -> p.X, p.Y 
-            let y = Math.Interpolation.linear x x0 y0 x1 y1
-            Some y
-        else
-            None
-
-    let inline interpolateY x s=
-        let x0,y0 = startPoint s |> fun p -> p.X, p.Y 
-        let x1,y1 = endPoint s |> fun p -> p.X, p.Y 
+    let inline interpolateY x s =
+        let x0,y0,x1,y1 = unmake s 
         Math.Interpolation.linear x x0 y0 x1 y1
 
-    let inline tryInterpolateX y s = 
-        if isInDomain IntervalType.T.Closed y s then
-            if isFlatDomain s then
-                Some (startX s)
-            else
-                let x0,y0 = startPoint s |> fun p -> p.X, p.Y
-                let x1,y1 = endPoint s |> fun p -> p.X, p.Y
-                let x = Math.Interpolation.linear y y0 x0 y1 x1
-                Some x
-        else
-            None
+    let inline tryInterpolateY x s =
+        if isInRange (intervalType s) x s 
+        then Some (interpolateY x s)
+        else None
 
     let inline interpolateX y s = 
         if isFlatDomain s then
            (startX s)
         else
-            let x0,y0 = startPoint s |> fun p -> p.X, p.Y
-            let x1,y1 = endPoint s |> fun p -> p.X, p.Y
+            let x0,y0,x1,y1 = unmake s
             Math.Interpolation.linear y y0 x0 y1 x1
 
-    let inline divide interpolateF (xs:seq<'a>) segment =
+    let inline tryInterpolateX y s = 
+        if isInDomain IntervalType.T.Closed y s 
+        then Some (interpolateX y s)
+        else None
+
+    let inline divide interpolateF xs s =
         seq {
-            yield startPoint segment
-            yield! Seq.filter (fun x -> isInRange IntervalType.T.Open x segment) xs |> Seq.map (fun x -> Point.make(x, interpolateF x segment))
-            yield endPoint segment
+            yield startPoint s
+            yield! Seq.filter (fun x -> isInRange IntervalType.T.Open x s) xs |> Seq.map (fun x -> Point.make(x, interpolateF x s))
+            yield endPoint s
         } |> Seq.pairwise 
         |> Seq.map makeContinuous
 
-       
-
     let inline intersection s1 s2 =
-        let x0,y0 = startPoint s1 |> fun p -> p.X, p.Y
-        let x1,y1 = endPoint s1 |> fun p -> p.X, p.Y
-        let x2,y2 = startPoint s2 |> fun p -> p.X, p.Y
-        let x3,y3 = endPoint s2 |> fun p -> p.X, p.Y
+        let x0,y0,x1,y1 = unmake s1
+        let x2,y2,x3,y3 = unmake s2
         Math.intersection x0 y0 x1 y1 x2 y2 x3 y3
         |> Option.getOrElseWith None (fun (x,y) -> Some(Point.make(x,y)))
 
@@ -210,10 +192,10 @@ module Segment =
     let inline length unitF s = delta s |> unitF
 
     let inline area unitF (s:T<_,float<'u>>) =
-         let startValue = startY s
-         let endValue = endY s
-         let duration = length unitF s 
-         (startValue + endValue) / 2.0 * duration
+        let startValue = startY s
+        let endValue = endY s
+        let duration = length unitF s 
+        (startValue + endValue) / 2.0 * duration
 
     let inline tryArea unitF (s:T<_,float<'u> option>) =
         Option.maybe { 
@@ -245,61 +227,33 @@ module Segment =
             then Some (interpolate s)
             else None
 
-
-        let tryInterpolateValue<[<Measure>]'u> (time:DateTimeOffset) (s:T<float<'u>>) =
-            if isInRange IntervalType.T.Closed time s then
-                let y0 = startY s
-                let y1 = endY s
-                let startX = float (startX s).Ticks
-                let endX = float (endX s).Ticks
-                let x = float time.Ticks
-                let y = Math.Interpolation.linear x startX y0 endX y1
-                Some y
-            else
-                None 
-
-        let interpolateValue<[<Measure>]'u> (time:DateTimeOffset) (s:T<float<'u>>) =
-            let y0, y1 = startY s, endY s
-            let startX = float (startX s).Ticks
-            let endX = float (endX s).Ticks
+        let interpolateValue (time:DateTimeOffset) (s:T<float<'u>>) =
+            let x0,y0,x1,y1 = unmake s
             let x = float time.Ticks
-            Math.Interpolation.linear x startX y0 endX y1
+            Math.Interpolation.linear x (float x0.Ticks) y0 (float x1.Ticks) y1
 
-        let tryInterpolateTime value (s:T<float<'u>>) = 
-            if isInDomain IntervalType.T.Closed value s then
-                if isFlatDomain s then
-                    Some (startX s)
-                else
-                    let x0 = float (startX s).Ticks
-                    let x1 = float (endX s).Ticks
-                    let y0 = startY s
-                    let y1 = endY s 
-                    let x = Math.Interpolation.linear value y0 x0 y1 x1
-                    Some (DateTimeOffset(int64 x, (startX s).Offset))
-            else
-                None    
+        let tryInterpolateValue time s =
+            if isInRange IntervalType.T.Closed time s 
+            then Some (interpolateValue time s)
+            else None 
                 
         let interpolateTime value (s:T<float<'u>>) = 
             if isFlatDomain s then
                 startX s
             else
-                let x0 = float (startX s).Ticks
-                let x1 = float (endX s).Ticks
-                let y0 = startY s
-                let y1 = endY s
-                let x = Math.Interpolation.linear value y0 x0 y1 x1
+                let x0,y0,x1,y1 = unmake s
+                let x = Math.Interpolation.linear value y0 (float x0.Ticks) y1 (float x1.Ticks)
                 (DateTimeOffset(int64 x, (startX s).Offset))               
 
-        let intersection<[<Measure>]'u> (s1:T<float<'u>>) (s2:T<float<'u>>) =
-            let y0 = startY s1
-            let y1 = endY s1
-            let y2 = startY s2
-            let y3 = endY s2
-            let x0 = float (startX s1).Ticks
-            let x1 = float (endX s1).Ticks
-            let x2 = float (startX s2).Ticks
-            let x3 = float (endX s2).Ticks
-            Math.intersection x0 (float y0) x1 (float y1) x2 (float y2) x3 (float y3)
+        let tryInterpolateTime value s = 
+            if isInDomain IntervalType.T.Closed value s 
+            then Some (interpolateTime value s)
+            else None    
+
+        let intersection (s1:T<float<'u>>) (s2:T<float<'u>>) =
+            let x0,y0,x1,y1 = unmake s1
+            let x2,y2,x3,y3 = unmake s2
+            Math.intersection (float x0.Ticks) (float y0) (float x1.Ticks) (float y1) (float x2.Ticks) (float y2) (float x3.Ticks) (float y3)
             |> Option.getOrElseWith None (fun (t,v) ->
                 let time = DateTimeOffset(int64 t, (startX s1).Offset)
                 let value = LanguagePrimitives.FloatWithMeasure<'u> v 
