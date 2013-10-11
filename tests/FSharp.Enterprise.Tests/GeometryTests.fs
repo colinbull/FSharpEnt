@@ -723,6 +723,26 @@ type ``Given a continuous TimeLine`` () =
         let expected = [] |> List.toSeq
         actual |> should equal expected
 
+    [<Test>]
+    member x.``I can detect contiguity`` () =
+        let line = 
+            Line.make Segment.makeContinuous (
+                [(0.0,0.0),(10.0,10.0); (10.0,10.0),(20.0,10.0); (20.0,10.0),(30.0,20.0)] 
+                |> Seq.map (fun (p1,p2) -> Point.make p1, Point.make p2))
+        let actual = Line.isContiguous (=) line
+        let expected = true
+        actual |> should equal expected
+
+    [<Test>]
+    member x.``I can detect a discontiguity`` () =
+        let line = 
+            Line.make Segment.makeContinuous (
+                [(0.0,0.0),(10.0,10.0); (20.0,10.0),(30.0,20.0)] 
+                |> Seq.map (fun (p1,p2) -> Point.make p1, Point.make p2))
+        let actual = Line.isContiguous (=) line
+        let expected = false
+        actual |> should equal expected
+
 
 type ``Given an instantaneous TimeLine`` () =
 

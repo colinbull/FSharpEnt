@@ -26,7 +26,7 @@ module Line =
     let ofSegments segments = 
         Line (Seq.toArray segments)
 
-    let segments (Line(segments)) = segments 
+    let segments (Line(segments)) = segments         
 
     let startSegment (Line(segments)) =
         if segments.Length > 0 
@@ -203,6 +203,12 @@ module Line =
     let inline divide interpolateF xs (Line(segments)) = 
         Seq.collect (Segment.divide interpolateF xs) segments
         |> ofSegments
+
+    /// Returns the result of applying the predicate to the end X of the 
+    /// previous segment and the start X of the next segment.
+    let isContiguous pred (Line(segments)) =
+        Seq.pairwise segments
+        |> Seq.forall (fun (s1,s2) -> pred (Segment.endX s1) (Segment.startX s2))
 
 
     module Time =
