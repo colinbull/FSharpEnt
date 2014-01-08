@@ -1,12 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Enterprise.Tests", "tests\FSharp.Enterprise.Tests\FSharp.Enterprise.Tests.fsproj", "{98D9310B-EE26-469A-B5D1-A74603E4B4B0}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Enterprise.RabbitMq", "src\FSharp.Enterprise.RabbitMQ\FSharp.Enterprise.RabbitMq.fsproj", "{8D0564AD-9D1B-4BE9-A1BC-9ECD72718635}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Enterprise", "src\FSharp.Enterprise\FSharp.Enterprise.fsproj", "{4B0E0921-545E-4470-98D0-F13D8AABB248}"
-EndProject
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{32F64F0C-25A1-46F5-ABF5-1100CC5B4DFD}"
 	ProjectSection(SolutionItems) = preProject
 		samples\Core.Async.fsx = samples\Core.Async.fsx
@@ -44,8 +40,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{4441218F
 		template.html = template.html
 	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Enterprise.Web", "src\FSharp.Enterprise.Web\FSharp.Enterprise.Web.fsproj", "{8B1BB014-8386-4277-8B0D-68297BA72AAE}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{4F8AFCF9-B88D-4263-8579-4F0A9FCACFC4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1E9BF7CC-29FE-49AA-B904-8AEA5074ECBA}"
@@ -54,6 +48,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{1E9BF7
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Enterprise.Tests", "tests\FSharp.Enterprise.Tests\FSharp.Enterprise.Tests.fsproj", "{98D9310B-EE26-469A-B5D1-A74603E4B4B0}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Enterprise.RabbitMq", "src\FSharp.Enterprise.RabbitMQ\FSharp.Enterprise.RabbitMq.fsproj", "{8D0564AD-9D1B-4BE9-A1BC-9ECD72718635}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Enterprise", "src\FSharp.Enterprise\FSharp.Enterprise.fsproj", "{4B0E0921-545E-4470-98D0-F13D8AABB248}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Enterprise.Web", "src\FSharp.Enterprise.Web\FSharp.Enterprise.Web.fsproj", "{8B1BB014-8386-4277-8B0D-68297BA72AAE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
